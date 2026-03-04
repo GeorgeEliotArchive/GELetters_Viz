@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>George Eliot Letters: Formality & Abstraction by Recipient Type</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#fafafa;color:#2a2a2a;font-family:'DM Sans',sans-serif;}
+.page{max-width:880px;margin:0 auto;padding:20px 24px 40px;}
+header{text-align:center;padding:24px 0 12px;}
+header h1{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(20px,4vw,34px);line-height:1.2;margin-bottom:4px;}
+header h1 em{font-weight:500;font-style:italic;}
+.subtitle{font-family:'Cormorant Garamond',serif;font-size:13px;color:rgba(42,42,42,0.5);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:700px){.g2{grid-template-columns:1fr;}}
+.mc{background:#fff;border:1px solid rgba(42,42,42,0.1);border-radius:3px;padding:16px;}
+.mc h3{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;margin-bottom:1px;}
+.mc .ms{font-size:10px;color:rgba(42,42,42,0.4);margin-bottom:8px;}
+.mc canvas{cursor:crosshair;display:block;width:100%;}
+.expl{margin-top:12px;padding:14px 16px;background:rgba(42,42,42,0.025);border-radius:4px;border-left:3px solid rgba(42,42,42,0.1);}
+.expl h4{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;margin-bottom:6px;}
+.expl p{font-size:11.5px;color:rgba(42,42,42,0.6);line-height:1.65;margin-bottom:6px;}
+.expl p:last-child{margin-bottom:0;}
+.expl strong{color:rgba(42,42,42,0.8);}
+.tt{position:fixed;pointer-events:none;background:#2a2a2a;color:#fafafa;padding:8px 12px;border-radius:4px;font-size:11px;line-height:1.45;max-width:300px;z-index:1000;opacity:0;transition:opacity .1s;box-shadow:0 3px 14px rgba(0,0,0,0.22);}
+.tt .tt-t{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;margin-bottom:2px;}
+.tt .tt-m{opacity:0.6;font-size:10px;}
+.legend{display:flex;justify-content:center;gap:16px;margin:14px 0;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-family:'Cormorant Garamond',serif;font-weight:500;color:rgba(42,42,42,0.55);}
+.ldot{width:9px;height:9px;border-radius:50%;}
+.reading{font-size:10px;color:rgba(42,42,42,0.4);text-align:center;margin-bottom:14px;font-style:italic;line-height:1.6;}
+</style></head><body>
+<div class="page">
+
+<div class="legend">
+<div class="legend-item"><div class="ldot" style="background:#c48a1a"></div>Publishers (326)</div>
+<div class="legend-item"><div class="ldot" style="background:#2e74a8"></div>Inner Circle (858)</div>
+<div class="legend-item"><div class="ldot" style="background:#7a60b0"></div>Other Women (621)</div>
+<div class="legend-item"><div class="ldot" style="background:#3d8a50"></div>Other Men (477)</div>
+</div>
+
+<div class="g2">
+<div>
+<div class="mc"><h3>Formality by Recipient</h3><div class="ms">Hover for quartile values</div><canvas id="boxF" height="200"></canvas></div>
+</div>
+<div>
+<div class="mc"><h3>Abstraction by Recipient</h3><div class="ms">Hover for quartile values</div><canvas id="boxA" height="200"></canvas></div>
+</div>
+</div>
+</div>
+<div class="tt" id="tooltip"></div>
+<script>
+const SUPP={"topRecipients":[{"name":"Sara Sophia Hennell","count":343,"avgF":0.523,"avgA":0.646},{"name":"John Blackwood","count":211,"avgF":0.744,"avgA":0.72},{"name":"Mme Eugene Bodichon","count":144,"avgF":0.387,"avgA":0.363},{"name":"Mrs. Charles Bray","count":136,"avgF":0.557,"avgA":0.519},{"name":"Charles Bray","count":115,"avgF":0.555,"avgA":0.597},{"name":"Mrs. Richard Congreve","count":75,"avgF":0.501,"avgA":0.433},{"name":"Charles Lee Lewes","count":55,"avgF":0.511,"avgA":0.338},{"name":"Mrs. Elma Stuart","count":54,"avgF":0.482,"avgA":0.459},{"name":"Maria Lewis","count":52,"avgF":0.618,"avgA":0.761},{"name":"Bessie Rayner Parkes","count":49,"avgF":0.469,"avgA":0.548},{"name":"William Blackwood","count":48,"avgF":0.692,"avgA":0.627},{"name":"John Chapman","count":43,"avgF":0.601,"avgA":0.798},{"name":"Frederic Harrison","count":42,"avgF":0.646,"avgA":0.59},{"name":"Mr. and Mrs. Charles Bray","count":42,"avgF":0.473,"avgA":0.501},{"name":"George Combe","count":39,"avgF":0.968,"avgA":0.797}],"eraTimeline":[{"avgF":0.564,"avgA":0.645,"count":253},{"avgF":0.578,"avgA":0.619,"count":378},{"avgF":0.607,"avgA":0.662,"count":399},{"avgF":0.577,"avgA":0.552,"count":407},{"avgF":0.611,"avgA":0.532,"count":425},{"avgF":0.604,"avgA":0.477,"count":434}],"fHist":[49,23,29,36,48,56,86,130,144,166,190,229,205,179,154,121,83,85,49,234],"aHist":[139,39,41,49,36,127,111,93,104,172,167,147,132,94,127,119,133,74,79,313],"yearVolume":[[1836,1],[1837,0],[1838,4],[1839,9],[1840,27],[1841,33],[1842,26],[1843,10],[1844,11],[1845,22],[1846,32],[1847,14],[1848,31],[1849,33],[1850,11],[1851,39],[1852,108],[1853,87],[1854,60],[1855,33],[1856,40],[1857,59],[1858,46],[1859,112],[1860,59],[1861,69],[1862,54],[1863,47],[1864,46],[1865,49],[1866,60],[1867,62],[1868,76],[1869,67],[1870,49],[1871,64],[1872,76],[1873,91],[1874,80],[1875,65],[1876,45],[1877,75],[1878,55],[1879,151],[1880,108],[1881,0]],"catBox":[{"cat":0,"n":326,"fMin":0.175,"fQ1":0.598,"fMed":0.716,"fQ3":0.859,"fMax":1,"fAvg":0.721,"aMin":0,"aQ1":0.51,"aMed":0.739,"aQ3":0.984,"aMax":1,"aAvg":0.706},{"cat":1,"n":858,"fMin":0,"fQ1":0.362,"fMed":0.517,"fQ3":0.648,"fMax":1,"fAvg":0.504,"aMin":0,"aQ1":0.351,"aMed":0.559,"aQ3":0.778,"aMax":1,"aAvg":0.556},{"cat":2,"n":621,"fMin":0,"fQ1":0.43,"fMed":0.565,"fQ3":0.714,"fMax":1,"fAvg":0.568,"aMin":0,"aQ1":0.306,"aMed":0.506,"aQ3":0.739,"aMax":1,"aAvg":0.521},{"cat":3,"n":477,"fMin":0,"fQ1":0.545,"fMed":0.683,"fQ3":0.91,"fMax":1,"fAvg":0.695,"aMin":0,"aQ1":0.396,"aMed":0.596,"aQ3":0.828,"aMax":1,"aAvg":0.588}],"yearTrend":[[1836,1.0,0.288,1],[1838,0.726,0.757,4],[1839,0.719,0.767,9],[1840,0.657,0.737,27],[1841,0.661,0.719,33],[1842,0.65,0.686,26],[1843,0.688,0.687,10],[1844,0.626,0.648,11],[1845,0.534,0.634,22],[1846,0.531,0.609,32],[1847,0.475,0.598,14],[1848,0.426,0.559,31],[1849,0.384,0.552,33],[1850,0.466,0.569,11],[1851,0.563,0.614,39],[1852,0.577,0.628,108],[1853,0.591,0.615,87],[1854,0.596,0.613,60],[1855,0.597,0.607,33],[1856,0.599,0.706,40],[1857,0.619,0.728,59],[1858,0.612,0.709,46],[1859,0.603,0.662,112],[1860,0.601,0.633,59],[1861,0.601,0.605,69],[1862,0.597,0.592,54],[1863,0.556,0.569,47],[1864,0.519,0.556,46],[1865,0.53,0.572,49],[1866,0.571,0.571,60],[1867,0.623,0.577,62],[1868,0.609,0.535,76],[1869,0.59,0.53,67],[1870,0.583,0.485,49],[1871,0.602,0.501,64],[1872,0.639,0.524,76],[1873,0.628,0.552,91],[1874,0.618,0.558,80],[1875,0.602,0.536,65],[1876,0.621,0.504,45],[1877,0.64,0.502,75],[1878,0.603,0.506,55],[1879,0.589,0.47,151],[1880,0.58,0.46,108]],"salutations":[{"name":"My dear Mr./Sir","count":470},{"name":"Dear [name]","count":402},{"name":"My dear [name]","count":400},{"name":"Other/No salutation","count":344},{"name":"Dearest [name]","count":258},{"name":"Dear Friend","count":229},{"name":"Dear Mr./Mrs.","count":156},{"name":"Dear Sir/Madam","count":37}],"closings":[{"name":"Other","count":509},{"name":"Always/Ever yours","count":446},{"name":"Yours (other)","count":411},{"name":"Your loving/devoted","count":125},{"name":"Yours affectionately","count":70},{"name":"Yours sincerely","count":37},{"name":"Yours faithfully","count":35},{"name":"Yours truly","count":15}],"wordCountBins":[{"bin":"<50","count":94,"avgF":0.544,"avgA":0.465},{"bin":"50-99","count":257,"avgF":0.564,"avgA":0.453},{"bin":"100-199","count":559,"avgF":0.585,"avgA":0.546},{"bin":"200-299","count":483,"avgF":0.596,"avgA":0.597},{"bin":"300-499","count":536,"avgF":0.608,"avgA":0.62},{"bin":"500-799","count":269,"avgF":0.605,"avgA":0.632},{"bin":"800+","count":98,"avgF":0.624,"avgA":0.643}]};
+
+const CN=["Publishers","Inner Circle","Other Women","Other Men"];
+const CC=["#c48a1a","#2e74a8","#7a60b0","#3d8a50"];
+const CCA=["rgba(196,138,26,0.55)","rgba(46,116,168,0.55)","rgba(122,96,176,0.5)","rgba(61,138,80,0.5)"];
+const dpr=window.devicePixelRatio||1;
+const tt=document.getElementById('tooltip');
+function showTT(e,html){tt.innerHTML=html;tt.style.opacity=1;const tx=e.clientX+12;tt.style.left=(tx+300>window.innerWidth?e.clientX-310:tx)+'px';tt.style.top=(e.clientY-10)+'px';}
+function hideTT(){tt.style.opacity=0;}
+function initC(id,h){const c=document.getElementById(id),ctx=c.getContext('2d'),w=c.parentElement.getBoundingClientRect().width-32;c.style.width=w+'px';c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);return{c,ctx,w,h};}
+
+function drBox(id,key){
+  const{c,ctx,w,h}=initC(id,200);const mg={t:10,r:12,b:24,l:80},pW=w-mg.l-mg.r,pH=h-mg.t-mg.b;
+  ctx.clearRect(0,0,w,h);const D=SUPP.catBox;const n=D.length;const bh=pH/n-14;const meta=[];
+  [0,.25,.5,.75,1].forEach(v=>{const x=mg.l+v*pW;ctx.strokeStyle='rgba(42,42,42,0.06)';ctx.beginPath();ctx.moveTo(x,mg.t);ctx.lineTo(x,mg.t+pH);ctx.stroke();ctx.fillStyle='rgba(42,42,42,0.22)';ctx.font='9px "DM Sans",sans-serif';ctx.textAlign='center';ctx.fillText(v===0?'0':v===1?'1':v.toFixed(2),x,h-5);});
+  D.forEach((d,i)=>{const cy=mg.t+12+i*(pH/n)+bh/2;const mn=d[key+'Min'],q1=d[key+'Q1'],med=d[key+'Med'],q3=d[key+'Q3'],mx2=d[key+'Max'];
+    ctx.strokeStyle='rgba(42,42,42,0.2)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mg.l+mn*pW,cy);ctx.lineTo(mg.l+q1*pW,cy);ctx.stroke();ctx.beginPath();ctx.moveTo(mg.l+q3*pW,cy);ctx.lineTo(mg.l+mx2*pW,cy);ctx.stroke();
+    const bx=mg.l+q1*pW,bw2=(q3-q1)*pW;ctx.fillStyle=CCA[d.cat];ctx.fillRect(bx,cy-bh/2,bw2,bh);ctx.strokeStyle=CC[d.cat];ctx.lineWidth=1.5;ctx.strokeRect(bx,cy-bh/2,bw2,bh);
+    ctx.strokeStyle=CC[d.cat];ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(mg.l+med*pW,cy-bh/2);ctx.lineTo(mg.l+med*pW,cy+bh/2);ctx.stroke();
+    ctx.fillStyle='rgba(42,42,42,0.5)';ctx.font='10px "DM Sans",sans-serif';ctx.textAlign='right';ctx.fillText(CN[d.cat],mg.l-6,cy+3);
+    meta.push({y:cy-bh/2,h:bh,d,key});
+  });
+  c.onmousemove=e=>{const r=c.getBoundingClientRect(),my=e.clientY-r.top;let found=null;for(const m of meta){if(my>=m.y&&my<=m.y+m.h){found=m;break;}}if(found){const d=found.d,k=found.key;showTT(e,'<div class="tt-t">'+CN[d.cat]+' ('+d.n+' letters)</div><div class="tt-m">Min: '+d[k+'Min'].toFixed(2)+' \xb7 Q1: '+d[k+'Q1'].toFixed(2)+'</div><div class="tt-m">Median: '+d[k+'Med'].toFixed(2)+' \xb7 Mean: '+d[k+'Avg'].toFixed(2)+'</div><div class="tt-m">Q3: '+d[k+'Q3'].toFixed(2)+' \xb7 Max: '+d[k+'Max'].toFixed(2)+'</div>');}else hideTT();};
+  c.onmouseleave=hideTT;
+}
+function drawAll(){drBox('boxF','f');drBox('boxA','a');}
+window.addEventListener('resize',drawAll);drawAll();
+</script></body></html>
