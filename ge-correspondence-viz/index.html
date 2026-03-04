@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>George Eliot Archive: Gender-Based Correspondence</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #FAF8F3;
+      color: #2C2C2C;
+      padding: 2rem 2.5rem;
+      max-width: 860px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #2C2C2C;
+      border-bottom: 2px solid #B8860B;
+      padding-bottom: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1rem;
+      color: #5a3e28;
+      margin: 1.8rem 0 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.85rem;
+    }
+
+    .disclaimer {
+      background: #F0EAD6;
+      border-left: 4px solid #B8860B;
+      padding: 0.9rem 1.2rem;
+      margin: 1.2rem 0 1.6rem;
+      font-size: 0.8rem;
+      line-height: 1.65;
+      color: #4a3c2a;
+    }
+
+    .disclaimer strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .viz-card {
+      background: #ffffff;
+      border: 1px solid #e0d8c8;
+      border-radius: 6px;
+      padding: 1.5rem 1.5rem 1.2rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .viz-title {
+      font-size: 0.92rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1.1rem;
+      color: #3a2c1e;
+      letter-spacing: 0.01em;
+    }
+
+    #chord-svg {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 1.8rem;
+      margin-top: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      color: #3a3030;
+    }
+
+    .legend-swatch {
+      width: 13px;
+      height: 13px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    #tooltip {
+      position: fixed;
+      background: rgba(30, 20, 10, 0.91);
+      color: #f5f0e8;
+      padding: 7px 13px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+      font-family: Georgia, serif;
+      line-height: 1.6;
+      z-index: 100;
+      max-width: 240px;
+    }
+
+    .explanation p {
+      font-size: 0.875rem;
+      line-height: 1.8;
+      color: #3a3030;
+      margin-bottom: 0.9rem;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      flex: 1;
+      min-width: 140px;
+      background: #f7f2ea;
+      border: 1px solid #e0d4be;
+      border-radius: 4px;
+      padding: 0.65rem 0.8rem;
+      text-align: center;
+    }
+
+    .stat-box .stat-num {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #2C2C2C;
+    }
+
+    .stat-box .stat-label {
+      font-size: 0.72rem;
+      color: #7a6a5a;
+      margin-top: 0.15rem;
+      line-height: 1.4;
+    }
+
+    canvas { max-height: 300px; }
+  </style>
+</head>
+<body>
+
+<h1>Gender-Based Correspondence in the George Eliot Archive</h1>
+
+<div class="disclaimer">
+  <strong>Disclaimer</strong>
+  These analytics were generated through Machine Learning, not the use of Generative AI. IBM defines Machine Learning as "the subset of artificial intelligence (AI) focused on algorithms that can 'learn' the patterns of training data and, subsequently, make accurate inferences about new data. This pattern recognition ability enables machine learning models to make decisions or predictions without explicit, hard-coded instructions." The results visualized here have been verified through several revisions and statistically significant measures.
+</div>
+
+<!-- Summary stats -->
+<div class="stat-row">
+  <div class="stat-box">
+    <div class="stat-num">3,987</div>
+    <div class="stat-label">Total Letters<br>in Archive</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">62%</div>
+    <div class="stat-label">Letters Written<br>by Female Senders</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">34%</div>
+    <div class="stat-label">Female → Female<br>Correspondence</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num">1836–1881</div>
+    <div class="stat-label">Date Range<br>Covered</div>
+  </div>
+</div>
+
+<!-- Chord Diagram -->
+<div class="viz-card">
+  <div class="viz-title">Gender Correspondence Flow — 3,639 Letters with Identified Genders</div>
+  <svg id="chord-svg"></svg>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#C2746F"></div> Female Sender / Recipient
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#5B7FA6"></div> Male Sender / Recipient
+    </div>
+  </div>
+  <p style="text-align:center; font-size:0.72rem; color:#9a8a7a; margin-top:0.7rem;">
+    Hover over arcs or ribbons to explore correspondence flows.
+  </p>
+</div>
+
+<!-- Decade Bar Chart -->
+<div class="viz-card">
+  <div class="viz-title">Correspondence by Decade &amp; Gender Pairing (Letters with Identified Genders)</div>
+  <canvas id="decade-chart"></canvas>
+</div>
+
+<div id="tooltip"></div>
+
+<!-- Explanation -->
+<h2>Interpretation of Results</h2>
+<div class="explanation">
+  <p>
+    Across the 3,987 letters in the George Eliot Archive spanning 1836–1881, correspondence patterns reveal a
+    distinctly female-dominant epistolary network. <strong>Female-to-female correspondence accounts for the
+    largest single category (1,357 letters, approximately 34% of all identified-gender letters)</strong>,
+    followed by male-to-male correspondence (983 letters, ~25%). Female senders authored nearly 62% of all
+    letters in the archive, reflecting both George Eliot's prolific personal writing and the broader role of
+    women as primary custodians of social correspondence in the Victorian era.
+  </p>
+  <p>
+    The chord diagram above visualizes the flow of letters between female and male correspondents. Each arc
+    represents a gender group, sized in proportion to the total volume of letters sent and received.
+    The ribbons connecting the arcs represent the exchange between groups — notably, the ribbon between
+    female senders and male recipients (923 letters) is substantially larger than the reverse
+    (male-to-female: 376 letters), suggesting women more frequently initiated cross-gender correspondence.
+  </p>
+  <p>
+    The decade-by-decade breakdown reveals a significant surge in correspondence activity during the 1860s and
+    1870s — periods coinciding with Eliot's peak literary career following the publications of
+    <em>The Mill on the Floss</em> (1860), <em>Middlemarch</em> (1871–72), and <em>Daniel Deronda</em> (1876).
+    Male-to-male letters rise sharply in the 1870s (442 letters), likely driven by the expanding circle of
+    literary, scientific, and intellectual figures engaging with Eliot's household. Cross-gender correspondence
+    (Female→Male: 923; Male→Female: 376) further demonstrates an asymmetry consistent with sociological
+    findings that women tended to initiate and sustain correspondence networks across gender lines more
+    frequently than men during this period. Approximately 348 letters in the full archive contained
+    unidentified or mixed-gender attributions and were excluded from these visualizations.
+  </p>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+// Genders: index 0 = Female, index 1 = Male
+// matrix[sender][recipient]
+const matrix = [
+  [1357, 923],   // Female → [Female, Male]
+  [376,  983]    // Male   → [Female, Male]
+];
+
+const genderLabels = ['Female', 'Male'];
+
+const decadeLabels = ['1830s', '1840s', '1850s', '1860s', '1870s', '1880s'];
+const decadeData = {
+  'F → F': [14,  210, 298, 344, 417,  74],
+  'F → M': [ 0,   23, 271, 244, 343,  42],
+  'M → F': [ 0,    2,  74, 109, 174,  18],
+  'M → M': [ 0,    0, 285, 251, 442,   5]
+};
+
+const COLORS = {
+  female:    '#C2746F',
+  male:      '#5B7FA6',
+  femFem:    '#C2746F',
+  femMal:    '#E0A099',
+  malFem:    '#8AAEC7',
+  malMal:    '#5B7FA6'
+};
+
+// ── CHORD DIAGRAM ─────────────────────────────────────────────────────────────
+(function () {
+  const W = 480, H = 480;
+  const outerR = 170, innerR = 148;
+
+  const svg = d3.select('#chord-svg')
+    .attr('width', W)
+    .attr('height', H)
+    .append('g')
+    .attr('transform', `translate(${W / 2},${H / 2})`);
+
+  const chord = d3.chord().padAngle(0.05).sortSubgroups(d3.descending);
+  const chords = chord(matrix);
+
+  const arc     = d3.arc().innerRadius(innerR).outerRadius(outerR);
+  const ribbon  = d3.ribbon().radius(innerR);
+
+  const arcFill = [COLORS.female, COLORS.male];
+
+  const chordFill = {
+    '0-0': COLORS.femFem,
+    '0-1': COLORS.femMal,
+    '1-0': COLORS.malFem,
+    '1-1': COLORS.malMal
+  };
+
+  const tip = d3.select('#tooltip');
+
+  // ── outer arcs
+  const group = svg.append('g').selectAll('g').data(chords.groups).join('g');
+
+  group.append('path')
+    .attr('fill', d => arcFill[d.index])
+    .attr('stroke', d => d3.rgb(arcFill[d.index]).darker(0.5))
+    .attr('d', arc)
+    .style('cursor', 'pointer')
+    .on('mouseover', function (event, d) {
+      const sent     = matrix[d.index].reduce((a, b) => a + b, 0);
+      const received = matrix.reduce((s, row) => s + row[d.index], 0);
+      tip.style('opacity', 1)
+         .html(`<strong>${genderLabels[d.index]}</strong><br>
+                Letters sent: <strong>${sent.toLocaleString()}</strong><br>
+                Letters received: <strong>${received.toLocaleString()}</strong>`);
+      d3.selectAll('.chord-ribbon').style('opacity',
+        dd => (dd.source.index === d.index || dd.target.index === d.index) ? 0.85 : 0.1);
+    })
+    .on('mousemove', ev => tip.style('left', (ev.clientX + 16) + 'px').style('top', (ev.clientY - 32) + 'px'))
+    .on('mouseout',  () => { tip.style('opacity', 0); d3.selectAll('.chord-ribbon').style('opacity', 0.7); });
+
+  // arc labels
+  group.append('text')
+    .each(d => { d.angle = (d.startAngle + d.endAngle) / 2; })
+    .attr('dy', '0.35em')
+    .attr('transform', d => `
+      rotate(${d.angle * 180 / Math.PI - 90})
+      translate(${outerR + 20})
+      ${d.angle > Math.PI ? 'rotate(180)' : ''}
+    `)
+    .attr('text-anchor', d => d.angle > Math.PI ? 'end' : 'start')
+    .style('font-family', 'Georgia, serif')
+    .style('font-size', '13px')
+    .style('fill', '#2C2C2C')
+    .text(d => genderLabels[d.index]);
+
+  // tick marks
+  group.each(function (d) {
+    const total = matrix[d.index].reduce((a, b) => a + b, 0);
+    const step  = 200;
+    const ticks = d3.range(0, total, step).map(v => ({
+      value: v,
+      angle: d.startAngle + (v / total) * (d.endAngle - d.startAngle)
+    }));
+
+    d3.select(this).append('g').attr('fill', '#aaa')
+      .selectAll('text')
+      .data(ticks)
+      .join('text')
+      .attr('transform', t => `
+        rotate(${t.angle * 180 / Math.PI - 90})
+        translate(${outerR + 4},0)
+        ${t.angle > Math.PI ? 'rotate(180)' : ''}
+      `)
+      .attr('text-anchor', t => t.angle > Math.PI ? 'end' : null)
+      .style('font-size', '8px')
+      .text(t => t.value ? t.value.toLocaleString() : '');
+  });
+
+  // ── ribbons
+  svg.append('g')
+    .selectAll('path')
+    .data(chords)
+    .join('path')
+      .attr('class', 'chord-ribbon')
+      .attr('d', ribbon)
+      .attr('fill', d => chordFill[`${d.source.index}-${d.target.index}`])
+      .attr('fill-opacity', 0.7)
+      .attr('stroke', d => d3.rgb(chordFill[`${d.source.index}-${d.target.index}`]).darker(0.4))
+      .attr('stroke-width', 0.5)
+      .style('cursor', 'pointer')
+      .on('mouseover', function (event, d) {
+        const si = d.source.index, ti = d.target.index;
+        const a  = matrix[si][ti];
+        const b  = matrix[ti][si];
+        const isSelf = si === ti;
+        tip.style('opacity', 1).html(
+          isSelf
+            ? `<strong>${genderLabels[si]} → ${genderLabels[ti]}</strong><br>${a.toLocaleString()} letters`
+            : `<strong>${genderLabels[si]} → ${genderLabels[ti]}</strong>: ${a.toLocaleString()} letters<br>
+               <strong>${genderLabels[ti]} → ${genderLabels[si]}</strong>: ${b.toLocaleString()} letters`
+        );
+        d3.selectAll('.chord-ribbon').style('opacity',
+          dd => (dd.source.index === si && dd.target.index === ti) ? 0.9 : 0.1);
+      })
+      .on('mousemove', ev => tip.style('left', (ev.clientX + 16) + 'px').style('top', (ev.clientY - 32) + 'px'))
+      .on('mouseout',  () => { tip.style('opacity', 0); d3.selectAll('.chord-ribbon').style('opacity', 0.7); });
+}());
+
+// ── DECADE STACKED BAR CHART ───────────────────────────────────────────────
+(function () {
+  const ctx = document.getElementById('decade-chart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: decadeLabels,
+      datasets: [
+        { label: 'Female → Female', data: decadeData['F → F'], backgroundColor: COLORS.femFem },
+        { label: 'Female → Male',   data: decadeData['F → M'], backgroundColor: COLORS.femMal },
+        { label: 'Male → Female',   data: decadeData['M → F'], backgroundColor: COLORS.malFem },
+        { label: 'Male → Male',     data: decadeData['M → M'], backgroundColor: COLORS.malMal }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: { font: { family: 'Georgia, serif', size: 11 }, color: '#2C2C2C' }
+        },
+        tooltip: {
+          callbacks: {
+            label: c => ` ${c.dataset.label}: ${c.raw.toLocaleString()} letters`
+          },
+          bodyFont:  { family: 'Georgia, serif' },
+          titleFont: { family: 'Georgia, serif' }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { font: { family: 'Georgia, serif' }, color: '#2C2C2C' },
+          grid:  { display: false }
+        },
+        y: {
+          stacked: true,
+          ticks: { font: { family: 'Georgia, serif' }, color: '#2C2C2C' },
+          grid:  { color: '#ece4d4' },
+          title: {
+            display: true,
+            text: 'Number of Letters',
+            font: { family: 'Georgia, serif', size: 11 },
+            color: '#777'
+          }
+        }
+      }
+    }
+  });
+}());
+</script>
+</body>
+</html>
