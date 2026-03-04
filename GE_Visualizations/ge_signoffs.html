@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign-Offs – George Eliot Letters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #faf6ee; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const {
+      AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+      ResponsiveContainer, ReferenceLine, BarChart, Bar, ComposedChart, Legend, Brush
+    } = Recharts;
+
+    const DATA = {"yearly":[{"year":1836,"warmth":4.0,"warmth_std":0.0,"count":1,"Truly":0,"Sincerely":0,"Faithfully":0,"Affectionate":1,"Loving":0,"Ever [yours/your]":0,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":0,"warm_pct":1.0},{"year":1838,"warmth":2.833,"warmth_std":1.041,"count":3,"Truly":0,"Sincerely":0,"Faithfully":0,"Affectionate":2,"Loving":0,"Ever [yours/your]":0,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":1,"warm_pct":0.667},{"year":1839,"warmth":3.167,"warmth_std":1.25,"count":9,"Truly":0,"Sincerely":0,"Faithfully":0,"Affectionate":5,"Loving":0,"Ever [yours/your]":1,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":3,"warm_pct":0.556},{"year":1840,"warmth":2.854,"warmth_std":1.114,"count":24,"Truly":1,"Sincerely":0,"Faithfully":0,"Affectionate":9,"Loving":2,"Ever [yours/your]":3,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":9,"warm_pct":0.458},{"year":1841,"warmth":2.679,"warmth_std":1.171,"count":28,"Truly":4,"Sincerely":0,"Faithfully":0,"Affectionate":8,"Loving":3,"Ever [yours/your]":2,"Always [yours]":0,"Thine":1,"Devoted":0,"Other formal":10,"warm_pct":0.429},{"year":1842,"warmth":2.775,"warmth_std":0.933,"count":20,"Truly":3,"Sincerely":0,"Faithfully":0,"Affectionate":7,"Loving":2,"Ever [yours/your]":3,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":5,"warm_pct":0.45},{"year":1843,"warmth":2.278,"warmth_std":0.828,"count":9,"Truly":1,"Sincerely":1,"Faithfully":0,"Affectionate":1,"Loving":1,"Ever [yours/your]":1,"Always [yours]":0,"Thine":1,"Devoted":0,"Other formal":3,"warm_pct":0.333},{"year":1844,"warmth":2.5,"warmth_std":0.837,"count":6,"Truly":1,"Sincerely":0,"Faithfully":0,"Affectionate":1,"Loving":1,"Ever [yours/your]":0,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":3,"warm_pct":0.333},{"year":1845,"warmth":2.318,"warmth_std":0.728,"count":11,"Truly":0,"Sincerely":3,"Faithfully":0,"Affectionate":0,"Loving":2,"Ever [yours/your]":3,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":3,"warm_pct":0.182},{"year":1846,"warmth":2.563,"warmth_std":0.629,"count":16,"Truly":1,"Sincerely":2,"Faithfully":0,"Affectionate":3,"Loving":1,"Ever [yours/your]":3,"Always [yours]":0,"Thine":1,"Devoted":0,"Other formal":5,"warm_pct":0.313},{"year":1847,"warmth":2.583,"warmth_std":0.669,"count":12,"Truly":1,"Sincerely":2,"Faithfully":0,"Affectionate":3,"Loving":0,"Ever [yours/your]":3,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":3,"warm_pct":0.25},{"year":1848,"warmth":2.174,"warmth_std":0.717,"count":23,"Truly":2,"Sincerely":5,"Faithfully":1,"Affectionate":5,"Loving":0,"Ever [yours/your]":3,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":7,"warm_pct":0.217},{"year":1849,"warmth":2.6,"warmth_std":0.693,"count":25,"Truly":2,"Sincerely":5,"Faithfully":1,"Affectionate":5,"Loving":2,"Ever [yours/your]":4,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":6,"warm_pct":0.28},{"year":1850,"warmth":2.409,"warmth_std":0.564,"count":11,"Truly":0,"Sincerely":2,"Faithfully":1,"Affectionate":4,"Loving":0,"Ever [yours/your]":3,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":1,"warm_pct":0.364},{"year":1851,"warmth":2.514,"warmth_std":0.809,"count":36,"Truly":2,"Sincerely":5,"Faithfully":2,"Affectionate":10,"Loving":3,"Ever [yours/your]":6,"Always [yours]":0,"Thine":0,"Devoted":0,"Other formal":8,"warm_pct":0.361},{"year":1852,"warmth":2.462,"warmth_std":0.751,"count":104,"Truly":15,"Sincerely":20,"Faithfully":5,"Affectionate":15,"Loving":2,"Ever [yours/your]":16,"Always [yours]":2,"Thine":2,"Devoted":0,"Other formal":27,"warm_pct":0.183},{"year":1853,"warmth":2.525,"warmth_std":0.688,"count":83,"Truly":11,"Sincerely":14,"Faithfully":3,"Affectionate":14,"Loving":5,"Ever [yours/your]":11,"Always [yours]":3,"Thine":2,"Devoted":0,"Other formal":20,"warm_pct":0.253},{"year":1854,"warmth":2.316,"warmth_std":0.592,"count":57,"Truly":5,"Sincerely":12,"Faithfully":2,"Affectionate":10,"Loving":3,"Ever [yours/your]":11,"Always [yours]":1,"Thine":0,"Devoted":0,"Other formal":13,"warm_pct":0.228},{"year":1855,"warmth":2.323,"warmth_std":0.696,"count":31,"Truly":1,"Sincerely":6,"Faithfully":2,"Affectionate":3,"Loving":5,"Ever [yours/your]":3,"Always [yours]":0,"Thine":3,"Devoted":0,"Other formal":8,"warm_pct":0.355},{"year":1856,"warmth":2.218,"warmth_std":0.587,"count":39,"Truly":5,"Sincerely":6,"Faithfully":2,"Affectionate":7,"Loving":3,"Ever [yours/your]":2,"Always [yours]":2,"Thine":2,"Devoted":0,"Other formal":10,"warm_pct":0.308},{"year":1857,"warmth":2.491,"warmth_std":0.835,"count":58,"Truly":18,"Sincerely":1,"Faithfully":2,"Affectionate":16,"Loving":7,"Ever [yours/your]":4,"Always [yours]":0,"Thine":3,"Devoted":0,"Other formal":7,"warm_pct":0.448},{"year":1858,"warmth":2.456,"warmth_std":0.615,"count":45,"Truly":11,"Sincerely":5,"Faithfully":0,"Affectionate":10,"Loving":4,"Ever [yours/your]":5,"Always [yours]":0,"Thine":3,"Devoted":0,"Other formal":7,"warm_pct":0.378},{"year":1859,"warmth":2.428,"warmth_std":0.703,"count":104,"Truly":42,"Sincerely":7,"Faithfully":5,"Affectionate":16,"Loving":6,"Ever [yours/your]":12,"Always [yours]":0,"Thine":2,"Devoted":0,"Other formal":14,"warm_pct":0.231},{"year":1860,"warmth":2.364,"warmth_std":0.696,"count":55,"Truly":17,"Sincerely":7,"Faithfully":4,"Affectionate":10,"Loving":3,"Ever [yours/your]":5,"Always [yours]":0,"Thine":3,"Devoted":0,"Other formal":6,"warm_pct":0.291},{"year":1861,"warmth":2.421,"warmth_std":0.686,"count":63,"Truly":16,"Sincerely":10,"Faithfully":3,"Affectionate":12,"Loving":5,"Ever [yours/your]":5,"Always [yours]":4,"Thine":2,"Devoted":0,"Other formal":6,"warm_pct":0.302},{"year":1862,"warmth":2.236,"warmth_std":0.587,"count":53,"Truly":11,"Sincerely":11,"Faithfully":3,"Affectionate":8,"Loving":3,"Ever [yours/your]":2,"Always [yours]":0,"Thine":3,"Devoted":0,"Other formal":12,"warm_pct":0.264},{"year":1863,"warmth":2.488,"warmth_std":0.849,"count":43,"Truly":12,"Sincerely":3,"Faithfully":2,"Affectionate":11,"Loving":3,"Ever [yours/your]":5,"Always [yours]":0,"Thine":3,"Devoted":0,"Other formal":4,"warm_pct":0.395},{"year":1864,"warmth":2.233,"warmth_std":0.686,"count":43,"Truly":7,"Sincerely":11,"Faithfully":2,"Affectionate":6,"Loving":2,"Ever [yours/your]":5,"Always [yours]":0,"Thine":3,"Devoted":0,"Other formal":7,"warm_pct":0.256},{"year":1865,"warmth":2.362,"warmth_std":0.786,"count":47,"Truly":6,"Sincerely":5,"Faithfully":3,"Affectionate":12,"Loving":3,"Ever [yours/your]":8,"Always [yours]":0,"Thine":4,"Devoted":0,"Other formal":6,"warm_pct":0.404},{"year":1866,"warmth":2.395,"warmth_std":0.7,"count":57,"Truly":9,"Sincerely":9,"Faithfully":4,"Affectionate":15,"Loving":3,"Ever [yours/your]":7,"Always [yours]":1,"Thine":2,"Devoted":0,"Other formal":7,"warm_pct":0.351},{"year":1867,"warmth":2.738,"warmth_std":0.741,"count":61,"Truly":11,"Sincerely":5,"Faithfully":0,"Affectionate":18,"Loving":5,"Ever [yours/your]":11,"Always [yours]":3,"Thine":2,"Devoted":0,"Other formal":6,"warm_pct":0.41},{"year":1868,"warmth":2.528,"warmth_std":0.778,"count":72,"Truly":14,"Sincerely":11,"Faithfully":2,"Affectionate":14,"Loving":5,"Ever [yours/your]":14,"Always [yours]":3,"Thine":2,"Devoted":0,"Other formal":7,"warm_pct":0.292},{"year":1869,"warmth":2.627,"warmth_std":0.808,"count":67,"Truly":11,"Sincerely":8,"Faithfully":0,"Affectionate":15,"Loving":7,"Ever [yours/your]":9,"Always [yours]":5,"Thine":3,"Devoted":0,"Other formal":9,"warm_pct":0.373},{"year":1870,"warmth":2.667,"warmth_std":0.7,"count":45,"Truly":3,"Sincerely":9,"Faithfully":1,"Affectionate":10,"Loving":7,"Ever [yours/your]":6,"Always [yours]":2,"Thine":3,"Devoted":0,"Other formal":4,"warm_pct":0.444},{"year":1871,"warmth":2.79,"warmth_std":0.879,"count":62,"Truly":4,"Sincerely":11,"Faithfully":0,"Affectionate":10,"Loving":10,"Ever [yours/your]":14,"Always [yours]":3,"Thine":3,"Devoted":0,"Other formal":7,"warm_pct":0.371},{"year":1872,"warmth":2.761,"warmth_std":0.856,"count":71,"Truly":4,"Sincerely":9,"Faithfully":1,"Affectionate":17,"Loving":10,"Ever [yours/your]":14,"Always [yours]":8,"Thine":1,"Devoted":0,"Other formal":7,"warm_pct":0.394},{"year":1873,"warmth":2.771,"warmth_std":0.813,"count":83,"Truly":8,"Sincerely":12,"Faithfully":0,"Affectionate":18,"Loving":11,"Ever [yours/your]":15,"Always [yours]":5,"Thine":4,"Devoted":0,"Other formal":10,"warm_pct":0.398},{"year":1874,"warmth":2.763,"warmth_std":0.801,"count":76,"Truly":9,"Sincerely":8,"Faithfully":2,"Affectionate":15,"Loving":13,"Ever [yours/your]":14,"Always [yours]":5,"Thine":2,"Devoted":0,"Other formal":8,"warm_pct":0.395},{"year":1875,"warmth":2.875,"warmth_std":0.761,"count":64,"Truly":2,"Sincerely":8,"Faithfully":0,"Affectionate":11,"Loving":13,"Ever [yours/your]":15,"Always [yours]":5,"Thine":3,"Devoted":0,"Other formal":7,"warm_pct":0.422},{"year":1876,"warmth":2.881,"warmth_std":0.891,"count":42,"Truly":2,"Sincerely":7,"Faithfully":0,"Affectionate":8,"Loving":10,"Ever [yours/your]":6,"Always [yours]":2,"Thine":3,"Devoted":0,"Other formal":4,"warm_pct":0.5},{"year":1877,"warmth":3.09,"warmth_std":0.872,"count":68,"Truly":1,"Sincerely":9,"Faithfully":0,"Affectionate":11,"Loving":19,"Ever [yours/your]":14,"Always [yours]":3,"Thine":2,"Devoted":0,"Other formal":9,"warm_pct":0.471},{"year":1878,"warmth":2.963,"warmth_std":0.85,"count":54,"Truly":3,"Sincerely":5,"Faithfully":1,"Affectionate":12,"Loving":12,"Ever [yours/your]":10,"Always [yours]":3,"Thine":2,"Devoted":0,"Other formal":6,"warm_pct":0.481},{"year":1879,"warmth":2.973,"warmth_std":0.819,"count":148,"Truly":5,"Sincerely":22,"Faithfully":1,"Affectionate":30,"Loving":30,"Ever [yours/your]":28,"Always [yours]":9,"Thine":7,"Devoted":0,"Other formal":16,"warm_pct":0.453},{"year":1880,"warmth":3.136,"warmth_std":0.96,"count":103,"Truly":2,"Sincerely":14,"Faithfully":2,"Affectionate":22,"Loving":22,"Ever [yours/your]":19,"Always [yours]":8,"Thine":5,"Devoted":0,"Other formal":9,"warm_pct":0.476}],"categories":["Truly","Sincerely","Faithfully","Affectionate","Loving","Ever [yours/your]","Always [yours]","Thine","Devoted","Other formal"],"warmth_changepoints":[1840,1867],"warmth_segments":[{"start_year":1836,"end_year":1839,"mean":3.148,"std":0.438},{"start_year":1840,"end_year":1866,"mean":2.47,"std":0.16},{"start_year":1867,"end_year":1880,"mean":2.849,"std":0.176}],"warm_pct_changepoints":[1857],"recipient_signoffs":{"Sara Sophia Hennell":{"count":300,"avg_warmth":2.62,"categories":{"Affectionate":87,"Ever [yours/your]":66,"Loving":61,"Other formal":43,"Always [yours]":16,"Thine":14,"Sincerely":7,"Truly":4,"Faithfully":2},"top_raw":{"ever your":"44","your affectionate":"40","your loving":"32"}},"John Blackwood":{"count":207,"avg_warmth":2.53,"categories":{"Truly":160,"Sincerely":30,"Other formal":9,"Ever [yours/your]":6,"Always [yours]":2},"top_raw":{"always yours truly":"90","ever yours truly":"32","yours very truly":"29"}},"Mrs. Charles Bray":{"count":125,"avg_warmth":2.69,"categories":{"Affectionate":42,"Ever [yours/your]":32,"Loving":29,"Other formal":9,"Always [yours]":5,"Sincerely":4,"Thine":3,"Truly":1},"top_raw":{"your affectionate":"27","your loving":"24","ever your":"17"}},"Mme Eugene Bodichon":{"count":130,"avg_warmth":3.0,"categories":{"Loving":46,"Ever [yours/your]":34,"Affectionate":20,"Always [yours]":12,"Other formal":8,"Sincerely":5,"Thine":4,"Truly":1},"top_raw":{"your loving":"34","ever your":"18","yours always":"13"}},"Charles Bray":{"count":111,"avg_warmth":2.69,"categories":{"Affectionate":73,"Ever [yours/your]":15,"Other formal":9,"Sincerely":6,"Truly":4,"Loving":2,"Always [yours]":1,"Faithfully":1},"top_raw":{"your affectionate":"50","yours very sincerely":"6","ever yours affectionately":"6"}},"Mrs. Richard Congreve":{"count":55,"avg_warmth":2.29,"categories":{"Ever [yours/your]":21,"Other formal":20,"Always [yours]":6,"Sincerely":4,"Affectionate":2,"Truly":2},"top_raw":{"yours always":"9","ever yours":"8","yours ever":"7"}},"Mrs. Elma Stuart":{"count":51,"avg_warmth":3.22,"categories":{"Loving":23,"Affectionate":13,"Other formal":9,"Ever [yours/your]":3,"Always [yours]":2,"Faithfully":1},"top_raw":{"your loving":"17","your affectionate":"11","always yours":"3"}},"Maria Lewis":{"count":48,"avg_warmth":2.38,"categories":{"Affectionate":23,"Other formal":13,"Ever [yours/your]":6,"Loving":4,"Sincerely":1,"Truly":1},"top_raw":{"your affectionate":"20","ever your":"4","your loving":"4"}},"William Blackwood":{"count":47,"avg_warmth":2.68,"categories":{"Truly":24,"Sincerely":20,"Ever [yours/your]":2,"Other formal":1},"top_raw":{"always yours truly":"1","always yours sincerely":"1","ever yours truly":"1"}},"Bessie Rayner Parkes":{"count":47,"avg_warmth":2.86,"categories":{"Affectionate":19,"Loving":14,"Ever [yours/your]":6,"Other formal":3,"Sincerely":2,"Always [yours]":1,"Truly":1,"Faithfully":1},"top_raw":{"your affectionate":"12","your loving":"10","ever your":"4"}},"Charles Lee Lewes":{"count":44,"avg_warmth":3.65,"categories":{"Loving":29,"Other formal":10,"Ever [yours/your]":3,"Affectionate":2},"top_raw":{"your loving":"28","yours always":"3","ever your":"2"}},"Frederic Harrison":{"count":42,"avg_warmth":2.75,"categories":{"Sincerely":29,"Other formal":6,"Truly":5,"Always [yours]":1,"Ever [yours/your]":1},"top_raw":{"always yours sincerely":"16","yours very sincerely":"7","yours very truly":"5"}}}};
+
+    const CAT_COLORS = {"Loving":"#f43f5e","Affectionate":"#fb923c","Thine":"#e879f9","Devoted":"#f472b6","Ever [yours/your]":"#a78bfa","Always [yours]":"#818cf8","Sincerely":"#38bdf8","Truly":"#2dd4bf","Faithfully":"#34d399","Other formal":"#64748b"};
+    const CATS_WARM = ["Loving","Affectionate","Thine","Devoted"];
+    const CATS_MID = ["Ever [yours/your]","Always [yours]"];
+    const CATS_FORMAL = ["Sincerely","Truly","Faithfully","Other formal"];
+    const CAT_GROUPS = {"Warm/Intimate":CATS_WARM,"Middle/Familiar":CATS_MID,"Formal/Professional":CATS_FORMAL};
+    const LIFE_EVENTS = [{year:1841,label:"Moves to Coventry"},{year:1854,label:"Union with Lewes"},{year:1857,label:"First fiction"},{year:1878,label:"Lewes dies"},{year:1880,label:"Marries Cross"}];
+
+    const chartData = DATA.yearly.map(d => ({...d}));
+
+    function StackTooltip({active,payload,label}){
+      if(!active||!payload?.length)return null;
+      const d=payload[0]?.payload;
+      const cats=DATA.categories.filter(c=>d[c]>0).sort((a,b)=>d[b]-d[a]);
+      return(
+        <div style={{background:"#ebe3d6",border:"1px solid #4a2030",borderRadius:10,padding:"14px 18px",fontFamily:"system-ui,sans-serif",maxWidth:280}}>
+          <div style={{fontSize:16,fontWeight:700,color:"#3a2a1a",marginBottom:3}}>{label}</div>
+          <div style={{fontSize:11,color:"#7a6a56",marginBottom:4}}>{d?.count} letters</div>
+          <div style={{fontSize:12,color:"#b45309",marginBottom:10}}>Warmth: <strong>{d?.warmth?.toFixed(2)}</strong>/5</div>
+          {cats.map(c=>(<div key={c} style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}><span style={{display:"flex",alignItems:"center",gap:6}}><span style={{width:8,height:8,borderRadius:2,background:CAT_COLORS[c]}}/><span style={{fontSize:12,color:"#6a5a48"}}>{c}</span></span><span style={{fontSize:12,fontWeight:600,color:CAT_COLORS[c]}}>{d[c]}</span></div>))}
+          <div style={{borderTop:"1px solid #4a2030",marginTop:6,paddingTop:6,fontSize:11,color:"#7a6a56"}}>Warm: {(d.warm_pct*100).toFixed(0)}% · Formal: {(100-d.warm_pct*100).toFixed(0)}%</div>
+        </div>
+      );
+    }
+
+    function WarmthTooltip({active,payload,label}){
+      if(!active||!payload?.length)return null;
+      const d=payload[0]?.payload;
+      const wl=d.warmth>=4?"Very Warm":d.warmth>=3?"Warm":d.warmth>=2.5?"Moderate":"Formal";
+      return(
+        <div style={{background:"#ebe3d6",border:"1px solid #4a2030",borderRadius:10,padding:"14px 18px",fontFamily:"system-ui,sans-serif"}}>
+          <div style={{fontSize:16,fontWeight:700,color:"#3a2a1a"}}>{label}</div>
+          <div style={{fontSize:12,color:"#7a6a56",marginBottom:6}}>{d?.count} sign-offs</div>
+          <div style={{fontSize:14,color:"#b45309"}}>Warmth: <strong>{d?.warmth?.toFixed(2)}</strong> <span style={{fontSize:12,color:"#7a6a56"}}>({wl})</span></div>
+          <div style={{fontSize:12,color:"#e879f9",marginTop:4}}>Intimate: {(d?.warm_pct*100).toFixed(0)}%</div>
+        </div>
+      );
+    }
+
+    function RecipientCard({name,data,isSelected,onClick}){
+      const wc=data.avg_warmth>=3.5?"#f43f5e":data.avg_warmth>=3?"#fb923c":data.avg_warmth>=2.5?"#a78bfa":"#38bdf8";
+      const topCats=Object.entries(data.categories).sort((a,b)=>b[1]-a[1]).slice(0,4);
+      const topRaw=Object.entries(data.top_raw).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      return(
+        <div onClick={onClick} style={{background:isSelected?"#e2d9cc":"#ebe3d6",borderRadius:12,border:`1.5px solid ${isSelected?wc:"#d6cab8"}`,padding:16,cursor:"pointer",transition:"all 0.2s"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div style={{fontSize:14,fontWeight:700,color:"#3a2a1a"}}>{name}</div>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <span style={{fontSize:11,color:"#7a6a56"}}>{data.count} letters</span>
+              <span style={{padding:"2px 8px",borderRadius:10,background:wc+"25",color:wc,fontSize:11,fontWeight:700}}>{data.avg_warmth.toFixed(1)}</span>
+            </div>
+          </div>
+          <div style={{display:"flex",borderRadius:4,overflow:"hidden",height:8,marginBottom:10,background:"#f5f0e6"}}>
+            {topCats.map(([cat,count])=>(<div key={cat} style={{width:`${(count/data.count)*100}%`,background:CAT_COLORS[cat],minWidth:2}} title={`${cat}: ${count}`}/>))}
+          </div>
+          {isSelected&&(
+            <div style={{marginTop:8}}>
+              <div style={{fontSize:11,color:"#7a6a56",marginBottom:6,fontWeight:600}}>Most used sign-offs:</div>
+              {topRaw.map(([raw,count])=>(<div key={raw} style={{display:"flex",justifyContent:"space-between",padding:"3px 8px",background:"#f5f0e6",borderRadius:4,marginBottom:3}}><span style={{fontSize:12,color:"#6a5a48",fontStyle:"italic",fontFamily:"'Crimson Pro',Palatino,Georgia,serif"}}>"{raw}"</span><span style={{fontSize:11,color:"#7a6a56",fontWeight:600}}>×{count}</span></div>))}
+              <div style={{fontSize:11,color:"#7a6a56",marginTop:6}}>Categories: {topCats.map(([c,n])=>`${c} (${n})`).join(", ")}</div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function SignOffViz(){
+      const[view,setView]=useState("stacked");
+      const[showCPs,setShowCPs]=useState(true);
+      const[showEvents,setShowEvents]=useState(true);
+      const[selectedRecipient,setSelectedRecipient]=useState(null);
+      const[activeCatGroups,setActiveCatGroups]=useState({"Warm/Intimate":true,"Middle/Familiar":true,"Formal/Professional":true});
+
+      const activeCats=useMemo(()=>{
+        const c=[];
+        Object.entries(activeCatGroups).forEach(([g,on])=>{if(on)c.push(...CAT_GROUPS[g]);});
+        return c;
+      },[activeCatGroups]);
+
+      const sortedRecipients=useMemo(()=>Object.entries(DATA.recipient_signoffs).sort((a,b)=>b[1].count-a[1].count),[]);
+
+      return(
+        <div style={{background:"linear-gradient(180deg, #faf6ee 0%, #f5f0e6 100%)",minHeight:"100vh",color:"#3a2a1a",fontFamily:"system-ui,sans-serif",padding:"24px 20px"}}>
+          <div style={{maxWidth:1100,margin:"0 auto"}}>
+
+            {/* Header */}
+            <div style={{marginBottom:28}}>
+              <div style={{fontSize:11,letterSpacing:5,color:"#e879f9",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>George Eliot Letters Archive · Epistolary Conventions</div>
+              <h1 style={{fontSize:30,fontWeight:300,margin:0,lineHeight:1.25,fontFamily:"'Crimson Pro',Georgia,serif"}}>The Art of <span style={{fontWeight:700,background:"linear-gradient(90deg,#f43f5e,#e879f9,#d97706)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Signing Off</span></h1>
+              <p style={{fontSize:14,color:"#7a6a56",marginTop:10,maxWidth:700,lineHeight:1.6}}>How George Eliot closed 2,076 letters across 44 years — from the devotional "your affectionate" of her youth to the warm "your loving" of her later years. Sign-offs reveal the emotional register she chose for each relationship.</p>
+            </div>
+
+            {/* Controls */}
+            <div style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:18,alignItems:"center"}}>
+              <div style={{display:"flex",gap:4,background:"#ebe3d6",padding:3,borderRadius:8,border:"1px solid #3a1a28"}}>
+                {[{id:"stacked",label:"Category Mix"},{id:"warmth",label:"Warmth Score"}].map(v=>(
+                  <button key={v.id} onClick={()=>setView(v.id)} style={{padding:"7px 14px",borderRadius:6,border:"none",cursor:"pointer",fontSize:12,fontWeight:600,background:view===v.id?"#e879f9":"transparent",color:view===v.id?"#f5f0e6":"#7a6a56",transition:"all 0.2s"}}>{v.label}</button>
+                ))}
+              </div>
+              {view==="stacked"&&Object.entries(CAT_GROUPS).map(([group,cats])=>{
+                const on=activeCatGroups[group];
+                const c=cats[0];
+                return(<button key={group} onClick={()=>setActiveCatGroups(p=>({...p,[group]:!p[group]}))} style={{padding:"5px 12px",borderRadius:16,border:`1.5px solid ${on?CAT_COLORS[c]:"#d6cab8"}`,background:on?CAT_COLORS[c]+"18":"transparent",color:on?CAT_COLORS[c]:"#9a8a76",cursor:"pointer",fontSize:11,fontWeight:500}}>{group}</button>);
+              })}
+              <button onClick={()=>setShowCPs(p=>!p)} style={{padding:"5px 12px",borderRadius:16,border:`1.5px solid ${showCPs?"#b45309":"#d6cab8"}`,background:showCPs?"#b4530920":"transparent",color:showCPs?"#b45309":"#9a8a76",cursor:"pointer",fontSize:11,fontWeight:500}}>⬥ Change Points</button>
+              <button onClick={()=>setShowEvents(p=>!p)} style={{padding:"5px 12px",borderRadius:16,border:`1.5px solid ${showEvents?"#22d3ee":"#d6cab8"}`,background:showEvents?"#22d3ee15":"transparent",color:showEvents?"#22d3ee":"#9a8a76",cursor:"pointer",fontSize:11,fontWeight:500}}>Life Events</button>
+            </div>
+
+            {/* Chart */}
+            <div style={{background:"#ebe3d6",borderRadius:14,border:"1px solid #3a1a28",padding:"20px 12px 8px 0"}}>
+              {view==="stacked"&&(
+                <ResponsiveContainer width="100%" height={400}>
+                  <AreaChart data={chartData} margin={{top:28,right:20,left:10,bottom:10}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#d6cab8"/>
+                    <XAxis dataKey="year" tick={{fill:"#7a6a56",fontSize:11}} axisLine={{stroke:"#d6cab8"}}/>
+                    <YAxis tick={{fill:"#7a6a56",fontSize:11}} tickLine={false} axisLine={false}/>
+                    <Tooltip content={<StackTooltip/>}/>
+                    {showCPs&&DATA.warmth_changepoints.map(yr=><ReferenceLine key={yr} x={yr} stroke="#d97706" strokeDasharray="6 3" strokeWidth={2} label={{value:`${yr}`,position:"top",fill:"#b45309",fontSize:10,fontWeight:700}}/>)}
+                    {showEvents&&LIFE_EVENTS.map(e=><ReferenceLine key={e.year} x={e.year} stroke="#22d3ee" strokeDasharray="2 4" strokeWidth={1} strokeOpacity={0.5}/>)}
+                    {activeCats.map(c=><Area key={c} type="monotone" dataKey={c} stackId="1" stroke={CAT_COLORS[c]} fill={CAT_COLORS[c]} fillOpacity={0.6} strokeWidth={1}/>)}
+                    <Brush dataKey="year" height={22} fill="#ebe3d6" stroke="#d6cab8"><BarChart><Bar dataKey="count" fill="#d6cab8"/></BarChart></Brush>
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+              {view==="warmth"&&(
+                <ResponsiveContainer width="100%" height={400}>
+                  <ComposedChart data={chartData} margin={{top:28,right:20,left:10,bottom:10}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#d6cab8"/>
+                    <XAxis dataKey="year" tick={{fill:"#7a6a56",fontSize:11}} axisLine={{stroke:"#d6cab8"}}/>
+                    <YAxis yAxisId="left" tick={{fill:"#7a6a56",fontSize:11}} tickLine={false} axisLine={false} domain={[1.5,4.5]} label={{value:"Warmth",angle:-90,position:"insideLeft",fill:"#7a6a56",fontSize:11}}/>
+                    <YAxis yAxisId="right" orientation="right" tick={{fill:"#e879f9",fontSize:11}} tickLine={false} axisLine={false} tickFormatter={v=>(v*100).toFixed(0)+"%"} domain={[0,1]}/>
+                    <Tooltip content={<WarmthTooltip/>}/>
+                    {showCPs&&DATA.warmth_changepoints.map(yr=><ReferenceLine key={yr} x={yr} yAxisId="left" stroke="#d97706" strokeDasharray="6 3" strokeWidth={2} label={{value:`${yr}`,position:"top",fill:"#b45309",fontSize:10,fontWeight:700}}/>)}
+                    {showCPs&&DATA.warm_pct_changepoints.map(yr=><ReferenceLine key={yr} x={yr} yAxisId="left" stroke="#e879f9" strokeDasharray="4 4" strokeWidth={1.5} label={{value:`${yr}`,position:"bottom",fill:"#e879f9",fontSize:10,fontWeight:600}}/>)}
+                    {showEvents&&LIFE_EVENTS.map(e=><ReferenceLine key={e.year} x={e.year} yAxisId="left" stroke="#22d3ee" strokeDasharray="2 4" strokeWidth={1} strokeOpacity={0.5}/>)}
+                    <Line yAxisId="left" type="monotone" dataKey="warmth" stroke="#d97706" strokeWidth={2.5} dot={false} activeDot={{r:6,fill:"#b45309",stroke:"#ebe3d6",strokeWidth:2}} name="Warmth Score"/>
+                    <Area yAxisId="right" type="monotone" dataKey="warm_pct" stroke="#e879f9" fill="#e879f9" fillOpacity={0.1} strokeWidth={2} dot={false} name="% Intimate"/>
+                    <Legend wrapperStyle={{fontSize:12,color:"#7a6a56",paddingTop:8}}/>
+                    <Brush dataKey="year" height={22} fill="#ebe3d6" stroke="#d6cab8"><BarChart><Bar dataKey="count" fill="#d6cab8"/></BarChart></Brush>
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Segment Cards */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:14,marginTop:20}}>
+              {DATA.warmth_segments.map((seg,i)=>{
+                const prev=i>0?DATA.warmth_segments[i-1]:null;
+                const pct=prev?((seg.mean-prev.mean)/prev.mean*100):null;
+                const wl=seg.mean>=3?"Warm":seg.mean>=2.5?"Moderate":"Formal-leaning";
+                const sc=seg.mean>=3?"#f43f5e":seg.mean>=2.5?"#a78bfa":"#38bdf8";
+                return(
+                  <div key={i} style={{padding:18,background:"#ebe3d6",borderRadius:12,border:"1px solid #3a1a28",borderTop:`3px solid ${sc}`}}>
+                    <div style={{fontSize:16,fontWeight:700,color:"#3a2a1a",marginBottom:4}}>{seg.start_year}–{seg.end_year}</div>
+                    <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:8}}>
+                      <span style={{fontSize:28,fontWeight:300,color:sc}}>{seg.mean.toFixed(2)}</span>
+                      <span style={{fontSize:12,color:"#7a6a56"}}>{wl}</span>
+                      {pct!==null&&<span style={{fontSize:12,fontWeight:600,color:pct>0?"#4ade80":"#fb923c"}}>{pct>0?"↑":"↓"}{Math.abs(pct).toFixed(1)}%</span>}
+                    </div>
+                    <p style={{fontSize:12,color:"#6a5a48",lineHeight:1.6,margin:0}}>
+                      {i===0&&"The earliest letters carry warm, devotional sign-offs ('your affectionate') from the young Marian Evans writing to close friends like Maria Lewis."}
+                      {i===1&&"Professional relationships grow — 'yours truly' dominates Blackwood correspondence. The formal middle period aligns with her public literary career."}
+                      {i===2&&"After 1867, warmth rebounds: 'your loving' replaces 'your affectionate' and letters to family (Charles Lee Lewes) and friends grow increasingly tender."}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Recipients */}
+            <div style={{marginTop:24,background:"#ebe3d6",borderRadius:14,border:"1px solid #3a1a28",padding:24}}>
+              <h2 style={{fontSize:18,fontWeight:700,margin:"0 0 6px 0",color:"#3a2a1a"}}>Sign-Offs by Recipient</h2>
+              <p style={{fontSize:12,color:"#7a6a56",margin:"0 0 16px 0"}}>How Eliot tailored her closings to each relationship. Click to see their most common sign-offs.</p>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:12}}>
+                {sortedRecipients.map(([name,data])=>(<RecipientCard key={name} name={name} data={data} isSelected={selectedRecipient===name} onClick={()=>setSelectedRecipient(selectedRecipient===name?null:name)}/>))}
+              </div>
+            </div>
+
+            {/* Warmth Scale */}
+            <div style={{marginTop:20,background:"#ebe3d6",borderRadius:14,border:"1px solid #3a1a28",padding:20}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#3a2a1a",marginBottom:12}}>Warmth Scale</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0 8px"}}>
+                {[{s:"1.0",l:"Obliged",c:"#38bdf8"},{s:"1.5",l:"Faithfully",c:"#38bdf8"},{s:"2.0",l:"Neutral",c:"#64748b"},{s:"2.5",l:"Truly",c:"#a78bfa"},{s:"3.0",l:"Sincerely",c:"#a78bfa"},{s:"4.0",l:"Affectionate",c:"#fb923c"},{s:"4.5",l:"Loving",c:"#f43f5e"},{s:"5.0",l:"Devoted",c:"#f43f5e"}].map(w=>(
+                  <div key={w.s} style={{textAlign:"center"}}>
+                    <div style={{width:32,height:6,borderRadius:3,background:w.c,margin:"0 auto 4px"}}/>
+                    <div style={{fontSize:11,fontWeight:700,color:w.c}}>{w.s}</div>
+                    <div style={{fontSize:10,color:"#7a6a56"}}>{w.l}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:8,padding:"0 8px"}}>
+                <span style={{fontSize:10,color:"#38bdf8"}}>← FORMAL</span>
+                <span style={{fontSize:10,color:"#f43f5e"}}>INTIMATE →</span>
+              </div>
+            </div>
+
+            <div style={{marginTop:16,padding:16,fontSize:11,color:"#9a8a76",lineHeight:1.6,borderTop:"1px solid #3a1a28"}}>
+              <strong style={{color:"#7a6a56"}}>Methodology:</strong> Sign-offs extracted via pattern matching from final 10 lines of each letter. Warmth scored 1–5 from formal ("yours faithfully") to intimate ("your devoted"). Binary segmentation with BIC penalty. 2,076 of 2,171 letters (95.6%) yielded extractable sign-offs.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<SignOffViz />);
+  </script>
+</body>
+</html>
