@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vocabulary Richness – George Eliot Letters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #f5f0e6; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const {
+      LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+      ResponsiveContainer, ReferenceLine, ReferenceArea,
+      ComposedChart, BarChart, Bar, Brush
+    } = Recharts;
+
+    const RAW_DATA = {"years":[1836,1838,1839,1840,1841,1842,1843,1844,1845,1846,1847,1848,1849,1850,1851,1852,1853,1854,1855,1856,1857,1858,1859,1860,1861,1862,1863,1864,1865,1866,1867,1868,1869,1870,1871,1872,1873,1874,1875,1876,1877,1878,1879,1880],"letter_count":[1,3,9,24,28,20,9,6,11,16,12,23,26,11,36,106,86,57,32,39,58,45,108,56,65,53,46,45,47,57,61,72,66,47,63,72,88,78,64,42,73,54,148,103],"avg_length":[332.0,813.3,835.3,651.5,466.9,474.8,446.0,323.0,366.6,295.4,354.0,372.3,700.9,270.6,262.7,252.3,221.8,298.1,346.8,280.1,354.4,325.0,331.0,355.6,332.4,294.2,283.9,258.4,224.2,304.8,304.8,236.3,263.2,279.2,266.5,310.5,286.5,283.0,269.7,390.2,289.7,267.8,224.5,279.3],"changepoints":{"ttr":[1844,1863],"hapax_ratio":[1851],"yules_k":[1856]},"segments":{"ttr":[{"start_year":1836,"end_year":1843,"mean":0.53346,"std":0.02898},{"start_year":1844,"end_year":1862,"mean":0.60766,"std":0.03001},{"start_year":1863,"end_year":1880,"mean":0.64393,"std":0.0152}],"hapax_ratio":[{"start_year":1836,"end_year":1850,"mean":0.43076,"std":0.0371},{"start_year":1851,"end_year":1880,"mean":0.49244,"std":0.0245}],"yules_k":[{"start_year":1836,"end_year":1855,"mean":101.78,"std":5.953},{"start_year":1856,"end_year":1880,"mean":92.859,"std":3.951}]},"ttr":[0.56928,0.51655,0.49568,0.54192,0.53449,0.5403,0.53698,0.53774,0.60299,0.62447,0.57413,0.5979,0.5878,0.59949,0.60735,0.61015,0.60648,0.60296,0.61068,0.58802,0.60459,0.62447,0.61252,0.60753,0.60651,0.6283,0.64148,0.63753,0.65129,0.63972,0.64949,0.64826,0.65035,0.63916,0.63549,0.64424,0.64414,0.64504,0.66123,0.63929,0.6456,0.64074,0.63434,0.65197],"hapax_ratio":[0.43072,0.38913,0.38225,0.42016,0.42147,0.42413,0.4115,0.42258,0.47355,0.46929,0.42805,0.43696,0.41951,0.45455,0.45836,0.48204,0.47725,0.47162,0.48115,0.46138,0.47626,0.49439,0.48425,0.47782,0.47951,0.50306,0.50714,0.49893,0.51757,0.49773,0.50816,0.50821,0.50879,0.49797,0.49369,0.50368,0.4968,0.50226,0.5184,0.49507,0.49973,0.49619,0.48726,0.50974],"yules_k":[84.555,105.538,108.105,104.944,100.047,101.477,105.506,100.705,92.065,96.571,103.574,100.091,103.524,100.684,101.274,96.986,97.641,98.068,95.91,98.231,96.141,91.716,93.777,96.874,97.621,91.061,90.735,93.751,88.412,92.489,90.787,92.23,90.358,92.73,93.474,92.348,93.513,92.558,87.874,93.593,93.301,92.707,95.218,91.215]};
+
+    const LIFE_EVENTS = [
+      { year: 1841, label: "Moves to Coventry" }, { year: 1846, label: "Translates Strauss" },
+      { year: 1851, label: "London / Westminster Review" }, { year: 1854, label: "Union with Lewes" },
+      { year: 1857, label: "First fiction published" }, { year: 1859, label: "Adam Bede" },
+      { year: 1863, label: "Romola" }, { year: 1871, label: "Middlemarch" },
+      { year: 1876, label: "Daniel Deronda" }, { year: 1878, label: "Lewes dies" },
+    ];
+
+    const FEATURES = {
+      ttr: {
+        label: "Type-Token Ratio", color: "#c2410c", inverted: false,
+        desc: "Unique words ÷ total words. Higher = more diverse vocabulary.",
+        interp: "Measures how many different words Eliot uses relative to total output. A TTR of 0.65 means 65% of words are unique.",
+        highlights: [
+          { label: "What it captures", pills: ["Every unique word lifts the ratio","Repeated words lower it"], tone: "neutral" },
+          { label: "High TTR signals", pills: ["Varied synonyms","Technical terms","Literary allusions","Rare/archaic words"], tone: "good" },
+          { label: "Low TTR signals", pills: ["Repetitive phrasing","Formulaic closings","Narrow focus","Casual/hurried style"], tone: "warn" },
+        ],
+      },
+      hapax_ratio: {
+        label: "Hapax Legomena Ratio", color: "#7c3aed", inverted: false,
+        desc: "Proportion of words appearing only once in a letter — lexical novelty.",
+        interp: "A hapax legomenon is a word used exactly once. More one-time words signal deliberate, varied word choice.",
+        highlights: [
+          { label: "Definition", pills: ["Words used exactly once per letter","Greek: 'said only once'"], tone: "neutral" },
+          { label: "High hapax signals", pills: ["Experimental vocabulary","Precise diction","Rich description","Novel expressions"], tone: "good" },
+          { label: "Low hapax signals", pills: ["Habitual word reuse","Shorter letters","Familiar phrasing"], tone: "warn" },
+        ],
+      },
+      yules_k: {
+        label: "Yule's K (×10⁻⁴)", color: "#0369a1", inverted: true,
+        desc: "Vocabulary concentration — lower K means richer, more evenly spread vocabulary. Robust to text length.",
+        interp: "Unlike TTR, Yule's K corrects for letter length. It measures whether Eliot relies on a few frequent words or spreads usage evenly.",
+        highlights: [
+          { label: "Formula", pills: ["K = 10⁴ × (M₂ − N) / N²","Length-independent"], tone: "neutral" },
+          { label: "Low K (richer vocab)", pills: ["Even word distribution","Many moderate-frequency words","Literary, measured prose"], tone: "good" },
+          { label: "High K (concentrated)", pills: ["Few words dominate","Heavy function-word reliance","Quick informal notes"], tone: "warn" },
+        ],
+      },
+    };
+
+    const chartData = RAW_DATA.years.map((y, i) => ({
+      year: y, ttr: RAW_DATA.ttr[i], hapax_ratio: RAW_DATA.hapax_ratio[i], yules_k: RAW_DATA.yules_k[i],
+      letter_count: RAW_DATA.letter_count[i], avg_length: RAW_DATA.avg_length[i],
+    }));
+
+    function Tip({ active, payload, label }) {
+      if (!active || !payload?.length) return null;
+      const d = payload[0]?.payload;
+      const evts = LIFE_EVENTS.filter(e => e.year === label);
+      return (
+        <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 10, padding: "12px 16px", maxWidth: 280, fontFamily: "'Crimson Pro', Georgia, serif" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#b45309", marginBottom: 3 }}>{label}</div>
+          <div style={{ fontSize: 11, color: "#7a6a56", marginBottom: 8 }}>{d?.letter_count} letters · ~{Math.round(d?.avg_length||0)} words avg</div>
+          {payload.map((p, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 3 }}>
+              <span style={{ color: FEATURES[p.dataKey]?.color, fontSize: 12 }}>{FEATURES[p.dataKey]?.label}</span>
+              <span style={{ fontWeight: 700, fontSize: 12, color: "#3a2a1a" }}>{p.dataKey === "yules_k" ? p.value?.toFixed(1) : (p.value*100)?.toFixed(1)+"%"}</span>
+            </div>
+          ))}
+          {evts.map((e,i) => <div key={i} style={{ marginTop: 6, padding: "4px 8px", background: "#d6cab8", borderRadius: 4, fontSize: 11, color: "#b45309" }}>★ {e.label}</div>)}
+        </div>
+      );
+    }
+
+    function Card({ fk, cfg, active, onToggle }) {
+      const segs = RAW_DATA.segments[fk] || [];
+      const cps = RAW_DATA.changepoints[fk] || [];
+      const pillColors = { neutral: { bg: "#d6cab8", border: "#c4b8a4", text: "#5a4a38" }, good: { bg: "#4ade8012", border: "#4ade8030", text: "#4ade80" }, warn: { bg: "#fb923c12", border: "#fb923c30", text: "#fb923c" } };
+      return (
+        <div onClick={onToggle} style={{ background: active ? "#c4b8a466" : "#f5f0e6", borderRadius: 14, border: `2px solid ${active ? cfg.color : "#ebe3d6"}`, padding: 20, cursor: "pointer", transition: "all 0.25s" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 12, height: 12, borderRadius: 3, background: active ? cfg.color : "#c4b8a4" }} />
+              <span style={{ fontSize: 15, fontWeight: 700, color: active ? "#3a2a1a" : "#8a7a66" }}>{cfg.label}</span>
+            </div>
+            <span style={{ fontSize: 10, color: "#b45309", fontWeight: 700, fontFamily: "system-ui" }}>{cps.length ? `CP: ${cps.join(", ")}` : "—"}</span>
+          </div>
+          <p style={{ fontSize: 12, color: "#7a6a56", lineHeight: 1.5, margin: "0 0 12px", fontFamily: "system-ui" }}>{cfg.desc}</p>
+
+          {cfg.highlights.map((g, gi) => (
+            <div key={gi} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: pillColors[g.tone].text, marginBottom: 4, fontFamily: "system-ui", textTransform: "uppercase", letterSpacing: 1 }}>{g.label}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {g.pills.map((p, pi) => (
+                  <span key={pi} style={{ padding: "2px 6px", background: pillColors[g.tone].bg, border: `1px solid ${pillColors[g.tone].border}`, borderRadius: 4, fontSize: 10, color: pillColors[g.tone].text, fontFamily: "system-ui" }}>{p}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div style={{ marginTop: 10 }}>
+            {segs.map((s, i) => {
+              const pct = i > 0 ? ((s.mean - segs[i-1].mean) / segs[i-1].mean * 100) : null;
+              return (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", background: i%2===0 ? "#ebe3d6" : "#d6cab8", borderRadius: 6, marginBottom: 2 }}>
+                  <span style={{ fontSize: 12, color: "#5a4a38", fontFamily: "system-ui" }}>{s.start_year}–{s.end_year}</span>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{fk==="yules_k" ? s.mean.toFixed(1) : (s.mean*100).toFixed(1)+"%"}</span>
+                    {pct !== null && <span style={{ fontSize: 11, fontWeight: 600, color: (cfg.inverted ? pct<0 : pct>0) ? "#4ade80" : "#fb923c", fontFamily: "system-ui" }}>{pct>0?"↑":"↓"} {Math.abs(pct).toFixed(1)}%</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ marginTop: 10, padding: "8px 10px", background: "#f5f0e6", borderRadius: 6, borderLeft: `3px solid ${cfg.color}` }}>
+            <p style={{ fontSize: 11, color: "#7a6a56", lineHeight: 1.5, margin: 0, fontFamily: "system-ui", fontStyle: "italic" }}>{cfg.interp}</p>
+          </div>
+        </div>
+      );
+    }
+
+    function VocabViz() {
+      const [af, setAf] = useState({ ttr: true, hapax_ratio: true, yules_k: false });
+      const [showEv, setShowEv] = useState(true);
+      const [showSeg, setShowSeg] = useState(true);
+      const [showCP, setShowCP] = useState(true);
+      const toggle = k => setAf(p => ({ ...p, [k]: !p[k] }));
+      const ak = Object.entries(af).filter(([,v])=>v).map(([k])=>k);
+      const allCPs = useMemo(() => { const c={}; ak.forEach(k=>(RAW_DATA.changepoints[k]||[]).forEach(yr=>{if(!c[yr])c[yr]=[];c[yr].push(k);})); return c; }, [ak.join(",")]);
+      const rightOnly = af.yules_k && ak.filter(k=>k!=="yules_k").length===0;
+
+      return (
+        <div style={{ background: "#f5f0e6", minHeight: "100vh", color: "#4a3726", fontFamily: "'Crimson Pro', Georgia, serif", padding: "26px 20px" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            <div style={{ borderBottom: "1px solid #d6cab8", paddingBottom: 20, marginBottom: 24 }}>
+              <div style={{ fontSize: 10, letterSpacing: 4, color: "#7a6a56", textTransform: "uppercase", marginBottom: 8, fontFamily: "system-ui" }}>George Eliot Letters Archive · Change-Point Detection</div>
+              <h1 style={{ fontSize: 30, fontWeight: 300, lineHeight: 1.2, margin: 0, color: "#3a2a1a" }}>Vocabulary Richness <span style={{ color: "#b45309" }}>Across Four Decades</span></h1>
+              <p style={{ fontSize: 14, color: "#7a6a56", marginTop: 8, maxWidth: 700, lineHeight: 1.6 }}>Tracking lexical diversity in 2,166 letters (1836–1880). Gold dashed lines mark detected change points. Click the cards below to toggle metrics on the chart.</p>
+            </div>
+
+            <div style={{ display: "flex", gap: 6, marginBottom: 18, background: "#ebe3d6", padding: 4, borderRadius: 8, width: "fit-content" }}>
+              {[["showCP","Change Points",showCP,setShowCP,"#b45309"],["showSeg","Segments",showSeg,setShowSeg,"#a78bfa"],["showEv","Life Events",showEv,setShowEv,"#22d3ee"]].map(([id,l,v,fn,c])=>(
+                <button key={id} onClick={()=>fn(p=>!p)} style={{ padding:"6px 14px",borderRadius:6,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:"system-ui",background:v?c:"transparent",color:v?"#f5f0e6":"#8a7a66",transition:"all 0.2s"}}>{l}</button>
+              ))}
+            </div>
+
+            <div style={{ background: "#ebe3d6", borderRadius: 14, border: "1px solid #d6cab8", padding: "18px 12px 8px 0" }}>
+              <ResponsiveContainer width="100%" height={380}>
+                <ComposedChart data={chartData} margin={{ top: 28, right: 22, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#d6cab8" />
+                  <XAxis dataKey="year" tick={{ fill: "#8a7a66", fontSize: 11, fontFamily: "system-ui" }} tickLine={{ stroke: "#c4b8a4" }} axisLine={{ stroke: "#c4b8a4" }} />
+                  {!rightOnly && <YAxis yAxisId="left" tick={{ fill: "#8a7a66", fontSize: 10 }} tickLine={false} axisLine={false} domain={[0.35,0.72]} tickFormatter={v=>(v*100).toFixed(0)+"%"} />}
+                  {af.yules_k && <YAxis yAxisId="right" orientation={rightOnly?"left":"right"} tick={{ fill: "#0369a1", fontSize: 10 }} tickLine={false} axisLine={false} domain={[80,115]} />}
+                  {showSeg && ak.map(k=>(RAW_DATA.segments[k]||[]).map((s,i)=><ReferenceArea key={`${k}${i}`} x1={s.start_year} x2={s.end_year} fill={FEATURES[k].color} fillOpacity={0.03+i%2*0.03} stroke="none" yAxisId={k==="yules_k"?"right":rightOnly?"right":"left"} />))}
+                  {showCP && Object.keys(allCPs).map(yr=><ReferenceLine key={yr} x={+yr} yAxisId={rightOnly?"right":"left"} stroke="#d97706" strokeDasharray="6 4" strokeWidth={2} label={{ value:yr,position:"top",fill:"#b45309",fontSize:10,fontWeight:700,fontFamily:"system-ui"}} />)}
+                  {showEv && LIFE_EVENTS.map(e=><ReferenceLine key={e.year} x={e.year} yAxisId={rightOnly?"right":"left"} stroke="#22d3ee" strokeDasharray="2 4" strokeWidth={1} strokeOpacity={0.3} />)}
+                  <Tooltip content={<Tip />} />
+                  {af.ttr && <Line yAxisId="left" type="monotone" dataKey="ttr" stroke="#c2410c" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#c2410c"}} />}
+                  {af.hapax_ratio && <Line yAxisId="left" type="monotone" dataKey="hapax_ratio" stroke="#7c3aed" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#7c3aed"}} />}
+                  {af.yules_k && <Line yAxisId="right" type="monotone" dataKey="yules_k" stroke="#0369a1" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#0369a1"}} />}
+                  <Brush dataKey="year" height={24} fill="#ebe3d6" stroke="#c4b8a4"><BarChart><Bar dataKey="letter_count" fill="#c4b8a4" /></BarChart></Brush>
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))", gap: 14, marginTop: 20 }}>
+              {Object.entries(FEATURES).map(([k, cfg]) => <Card key={k} fk={k} cfg={cfg} active={af[k]} onToggle={() => toggle(k)} />)}
+            </div>
+
+            {showEv && (
+              <div style={{ marginTop: 18, background: "#ebe3d6", borderRadius: 12, border: "1px solid #d6cab8", padding: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#3a2a1a", marginBottom: 10 }}>Biographical Timeline</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {LIFE_EVENTS.map((e,i)=>{
+                    const isCp = Object.keys(allCPs).includes(String(e.year));
+                    return <div key={i} style={{ padding:"4px 10px",background:isCp?"#b4530918":"#f5f0e6",border:`1px solid ${isCp?"#b45309":"#d6cab8"}`,borderRadius:5,fontSize:11,fontFamily:"system-ui"}}><span style={{color:"#b45309",fontWeight:700,marginRight:5}}>{e.year}</span><span style={{color:"#7a6a56"}}>{e.label}</span>{isCp&&<span style={{color:"#b45309",marginLeft:4,fontSize:9}}>⬥CP</span>}</div>;
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginTop: 12, padding: 12, fontSize: 10, color: "#9a8a76", fontFamily: "system-ui", lineHeight: 1.5 }}>Binary segmentation, L2 cost, BIC penalty. Annual means from 2,166 letters ≥20 words. Drag brush to zoom.</div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<VocabViz />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Function Word Composition – George Eliot Letters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #faf6ee; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const {
+      AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+      ResponsiveContainer, ReferenceLine, BarChart, Bar, ComposedChart, Brush,
+      RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend
+    } = Recharts;
+
+    const RAW = {"years":[1836,1838,1839,1840,1841,1842,1843,1844,1845,1846,1847,1848,1849,1850,1851,1852,1853,1854,1855,1856,1857,1858,1859,1860,1861,1862,1863,1864,1865,1866,1867,1868,1869,1870,1871,1872,1873,1874,1875,1876,1877,1878,1879,1880],"letter_count":[1,3,9,24,28,20,9,6,11,16,12,23,26,11,36,106,86,57,32,39,58,45,108,56,65,53,46,45,47,57,61,72,66,47,63,72,88,78,64,42,73,54,148,103],"func_word_ratio":[0.56024,0.55992,0.56645,0.56263,0.57193,0.56773,0.56133,0.56437,0.56152,0.55766,0.56474,0.55362,0.54891,0.55367,0.5501,0.5555,0.55575,0.55412,0.55553,0.5505,0.55093,0.54862,0.54777,0.5513,0.55181,0.55265,0.55254,0.54976,0.55173,0.54965,0.55093,0.55052,0.55413,0.5533,0.55142,0.55028,0.54832,0.54863,0.55076,0.5508,0.55293,0.55258,0.5517,0.55339],"pronoun_1st_ratio":[0.11446,0.07037,0.07752,0.07855,0.08137,0.08068,0.08908,0.07655,0.06862,0.07025,0.07197,0.06627,0.06448,0.06647,0.07159,0.06769,0.06707,0.06769,0.0656,0.06578,0.06677,0.06609,0.06661,0.06594,0.06542,0.06665,0.06736,0.06605,0.06714,0.06484,0.06722,0.06671,0.0674,0.07091,0.06601,0.06483,0.06588,0.06622,0.06759,0.0669,0.06655,0.06801,0.06596,0.06854],"pronoun_2nd_ratio":[0.03855,0.02833,0.0308,0.03047,0.02898,0.03179,0.02784,0.03042,0.03339,0.03224,0.03118,0.0341,0.03469,0.03609,0.03394,0.03503,0.03473,0.0345,0.03463,0.03514,0.03562,0.03647,0.03618,0.03511,0.03429,0.03475,0.03531,0.03526,0.03344,0.03567,0.03421,0.03552,0.03508,0.03546,0.03432,0.03446,0.03392,0.03476,0.03453,0.03388,0.03535,0.03536,0.03493,0.03456],"pronoun_3rd_ratio":[0.01506,0.02099,0.01949,0.02061,0.02036,0.01872,0.02562,0.02458,0.02769,0.02729,0.03134,0.03213,0.02757,0.02815,0.02786,0.03062,0.03089,0.03073,0.03163,0.03002,0.02957,0.02999,0.02745,0.02921,0.03096,0.03008,0.02777,0.02521,0.02479,0.02594,0.02622,0.02526,0.02547,0.02514,0.02435,0.02551,0.02437,0.02595,0.02526,0.02431,0.02532,0.02462,0.02685,0.02549],"article_ratio":[0.03012,0.04861,0.04744,0.05508,0.05786,0.05761,0.05951,0.06014,0.05811,0.06062,0.06265,0.0575,0.06177,0.06176,0.06076,0.06261,0.06229,0.06109,0.06175,0.06005,0.06064,0.06115,0.06254,0.06211,0.06139,0.0628,0.06353,0.06222,0.06349,0.06357,0.06204,0.06156,0.06329,0.06212,0.06239,0.06157,0.06317,0.06159,0.06119,0.06254,0.06214,0.06166,0.06162,0.06257],"preposition_ratio":[0.13253,0.12455,0.12666,0.1283,0.1256,0.13285,0.12716,0.12754,0.12824,0.1286,0.12983,0.13043,0.12942,0.12809,0.12946,0.13003,0.13122,0.12997,0.13249,0.13233,0.13084,0.13497,0.13339,0.13498,0.13537,0.13652,0.13767,0.13629,0.13513,0.13636,0.13551,0.13537,0.13734,0.13507,0.13526,0.13659,0.13451,0.13526,0.13577,0.13534,0.13812,0.13692,0.13641,0.13599],"conjunction_ratio":[0.08434,0.08666,0.08419,0.08506,0.08563,0.08272,0.08259,0.08395,0.08252,0.08116,0.07729,0.0755,0.07236,0.07264,0.0695,0.07367,0.07306,0.0729,0.07485,0.07364,0.0731,0.07128,0.07233,0.07193,0.07427,0.07228,0.07141,0.07166,0.07322,0.07135,0.07197,0.07291,0.07292,0.07177,0.07342,0.0729,0.0731,0.0727,0.07283,0.07187,0.07201,0.07348,0.07389,0.07213],"changepoints":{"func_word_ratio":[1846],"pronoun_1st_ratio":[1845],"pronoun_2nd_ratio":[1850],"pronoun_3rd_ratio":[1845,1863],"article_ratio":[1840],"preposition_ratio":[1858],"conjunction_ratio":[1848]},"segments":{"func_word_ratio":[{"start_year":1836,"end_year":1845,"mean":0.56542},{"start_year":1846,"end_year":1880,"mean":0.55165}],"pronoun_1st_ratio":[{"start_year":1836,"end_year":1844,"mean":0.08178},{"start_year":1845,"end_year":1880,"mean":0.06664}],"pronoun_2nd_ratio":[{"start_year":1836,"end_year":1849,"mean":0.03092},{"start_year":1850,"end_year":1880,"mean":0.03479}],"pronoun_3rd_ratio":[{"start_year":1836,"end_year":1844,"mean":0.02105},{"start_year":1845,"end_year":1862,"mean":0.02993},{"start_year":1863,"end_year":1880,"mean":0.02555}],"article_ratio":[{"start_year":1836,"end_year":1839,"mean":0.04933},{"start_year":1840,"end_year":1880,"mean":0.06157}],"preposition_ratio":[{"start_year":1836,"end_year":1857,"mean":0.12888},{"start_year":1858,"end_year":1880,"mean":0.13591}],"conjunction_ratio":[{"start_year":1836,"end_year":1847,"mean":0.0837},{"start_year":1848,"end_year":1880,"mean":0.07317}]}};
+
+    const CATS = {
+      pronoun_1st_ratio: { label: "1st Person Pronouns", short: "1st Person", color: "#f97316",
+        wordList: [{ w: "I", n: 20182, p: 47.4 },{ w: "my", n: 6447, p: 15.2 },{ w: "me", n: 6131, p: 14.4 },{ w: "we", n: 4770, p: 11.2 },{ w: "our", n: 2418, p: 5.7 },{ w: "us", n: 1603, p: 3.8 },{ w: "myself", n: 562, p: 1.3 },{ w: "mine", n: 216, p: 0.5 }],
+      },
+      pronoun_2nd_ratio: { label: "2nd Person Pronouns", short: "2nd Person", color: "#06b6d4",
+        wordList: [{ w: "you", n: 12213, p: 64.2 },{ w: "your", n: 5069, p: 26.7 },{ w: "yours", n: 1275, p: 6.7 },{ w: "yourself", n: 255, p: 1.3 },{ w: "thine", n: 80, p: 0.4 },{ w: "thy", n: 48, p: 0.3 },{ w: "thou", n: 30, p: 0.2 },{ w: "thee", n: 28, p: 0.1 }],
+      },
+      pronoun_3rd_ratio: { label: "3rd Person Pronouns", short: "3rd Person", color: "#8b5cf6",
+        wordList: [{ w: "it", n: 6319, p: 31.9 },{ w: "he", n: 2786, p: 14.1 },{ w: "his", n: 2298, p: 11.6 },{ w: "her", n: 2071, p: 10.5 },{ w: "him", n: 1303, p: 6.6 },{ w: "she", n: 1093, p: 5.5 },{ w: "them", n: 1084, p: 5.5 },{ w: "they", n: 972, p: 4.9 },{ w: "their", n: 677, p: 3.4 },{ w: "its", n: 670, p: 3.4 }],
+      },
+      article_ratio: { label: "Articles", short: "Articles", color: "#10b981",
+        wordList: [{ w: "the", n: 28086, p: 65.7 },{ w: "a", n: 12609, p: 29.5 },{ w: "an", n: 2031, p: 4.8 }],
+      },
+      preposition_ratio: { label: "Prepositions", short: "Prepositions", color: "#3b82f6",
+        wordList: [{ w: "to", n: 23485, p: 25.9 },{ w: "of", n: 20661, p: 22.8 },{ w: "in", n: 11122, p: 12.3 },{ w: "for", n: 7104, p: 7.8 },{ w: "with", n: 4946, p: 5.5 },{ w: "on", n: 4093, p: 4.5 },{ w: "at", n: 3439, p: 3.8 },{ w: "from", n: 3261, p: 3.6 },{ w: "by", n: 2886, p: 3.2 },{ w: "about", n: 1915, p: 2.1 }],
+      },
+      conjunction_ratio: { label: "Conjunctions", short: "Conjunctions", color: "#ec4899",
+        wordList: [{ w: "and", n: 17370, p: 34.0 },{ w: "that", n: 10775, p: 21.1 },{ w: "but", n: 4593, p: 9.0 },{ w: "which", n: 3830, p: 7.5 },{ w: "so", n: 2818, p: 5.5 },{ w: "if", n: 2170, p: 4.2 },{ w: "or", n: 1909, p: 3.7 },{ w: "when", n: 1651, p: 3.2 },{ w: "who", n: 1452, p: 2.8 },{ w: "because", n: 564, p: 1.1 }],
+      },
+    };
+
+    const ALL_KEYS = Object.keys(CATS);
+    const chartData = RAW.years.map((y,i) => { const d = { year: y, letter_count: RAW.letter_count[i], func_total: RAW.func_word_ratio[i] }; ALL_KEYS.forEach(k=>{ d[k]=RAW[k][i]; }); return d; });
+
+    const radarData = ALL_KEYS.map(k => {
+      const v = RAW[k];
+      const yrs = RAW.years;
+      const avg = (arr) => arr.reduce((a,b)=>a+b,0)/arr.length;
+      const e = avg(v.filter((_,i)=>yrs[i]<=1849));
+      const m = avg(v.filter((_,i)=>yrs[i]>=1850&&yrs[i]<=1864));
+      const l = avg(v.filter((_,i)=>yrs[i]>=1865));
+      const mn = Math.min(...v), mx = Math.max(...v);
+      const norm = x => mx>mn ? ((x-mn)/(mx-mn))*100 : 50;
+      return { feature: CATS[k].short, early: norm(e), mid: norm(m), late: norm(l), eR: e, mR: m, lR: l };
+    });
+
+    function ChartTip({ active, payload, label }) {
+      if (!active || !payload?.length) return null;
+      const d = payload[0]?.payload;
+      return (
+        <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 8, padding: "12px 16px", fontFamily: "system-ui, sans-serif", maxWidth: 260 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#3a2a1a", marginBottom: 3 }}>{label}</div>
+          <div style={{ fontSize: 11, color: "#7a6a56", marginBottom: 8 }}>{d?.letter_count} letters · Function words: {(d?.func_total*100)?.toFixed(1)}%</div>
+          {ALL_KEYS.map(k=>(
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 7, height: 7, borderRadius: 2, background: CATS[k].color }} />
+                <span style={{ fontSize: 12, color: "#5a4a38" }}>{CATS[k].short}</span>
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: CATS[k].color }}>{(d[k]*100).toFixed(2)}%</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function WordBar({ word, pct, color, maxPct }) {
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+          <span style={{ width: 50, fontSize: 13, fontWeight: 700, color: "#3a2a1a", fontFamily: "'Crimson Pro', Georgia, serif", textAlign: "right" }}>{word}</span>
+          <div style={{ flex: 1, height: 16, background: "#f5f0e6", borderRadius: 3, overflow: "hidden", position: "relative" }}>
+            <div style={{ width: `${(pct/maxPct)*100}%`, height: "100%", background: `${color}50`, borderRadius: 3, transition: "width 0.4s ease" }} />
+            <span style={{ position: "absolute", right: 6, top: 1, fontSize: 10, color: "#7a6a56", fontFamily: "system-ui" }}>{pct.toFixed(1)}%</span>
+          </div>
+        </div>
+      );
+    }
+
+    function FuncWordViz() {
+      const [view, setView] = useState("lines");
+      const [activeKeys, setActiveKeys] = useState(new Set(ALL_KEYS));
+      const [showCPs, setShowCPs] = useState(true);
+      const [expanded, setExpanded] = useState(null);
+
+      const toggleKey = k => setActiveKeys(p => { const n = new Set(p); if (n.has(k)){if(n.size>1)n.delete(k);}else n.add(k); return n; });
+      const allCPs = useMemo(() => { const c={}; ALL_KEYS.filter(k=>activeKeys.has(k)).forEach(k=>(RAW.changepoints[k]||[]).forEach(yr=>{if(!c[yr])c[yr]=[];c[yr].push(CATS[k].short);})); return c; }, [activeKeys]);
+
+      return (
+        <div style={{ background: "linear-gradient(180deg, #faf6ee 0%, #f5f0e6 100%)", minHeight: "100vh", color: "#3a2a1a", fontFamily: "system-ui, sans-serif", padding: "26px 20px" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 10, letterSpacing: 5, color: "#6366f1", textTransform: "uppercase", marginBottom: 8, fontWeight: 600 }}>George Eliot Letters Archive · Stylometric Analysis</div>
+              <h1 style={{ fontSize: 28, fontWeight: 300, margin: 0, lineHeight: 1.25, color: "#3a2a1a", fontFamily: "'Crimson Pro', Georgia, serif" }}>
+                Function Word <span style={{ fontWeight: 700, background: "linear-gradient(90deg, #f97316, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Composition &amp; Evolution</span>
+              </h1>
+              <p style={{ fontSize: 13, color: "#7a6a56", marginTop: 8, maxWidth: 660, lineHeight: 1.6 }}>
+                How Eliot's grammatical scaffolding shifted across 2,166 letters. Click any category card to see its top words ranked by frequency across the corpus.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18, alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 4, background: "#ebe3d6", padding: 3, borderRadius: 7 }}>
+                {[["stacked","Stacked"],["lines","Lines"],["radar","Eras"]].map(([id,l])=>(
+                  <button key={id} onClick={()=>setView(id)} style={{ padding:"7px 16px",borderRadius:5,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:view===id?"#6366f1":"transparent",color:view===id?"#fff":"#7a6a56",transition:"all 0.2s"}}>{l}</button>
+                ))}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {ALL_KEYS.map(k => {
+                  const on = activeKeys.has(k);
+                  return <button key={k} onClick={()=>toggleKey(k)} style={{ padding:"5px 12px",borderRadius:16,border:`1.5px solid ${on?CATS[k].color:"#c4b8a4"}`,background:on?CATS[k].color+"18":"transparent",color:on?CATS[k].color:"#9a8a76",cursor:"pointer",fontSize:11,fontWeight:500,display:"flex",alignItems:"center",gap:5 }}>
+                    <span style={{ width:6,height:6,borderRadius:"50%",background:on?CATS[k].color:"#9a8a76"}} />{CATS[k].short}
+                  </button>;
+                })}
+                <button onClick={()=>setShowCPs(p=>!p)} style={{ marginLeft:4,padding:"5px 12px",borderRadius:16,border:`1.5px solid ${showCPs?"#b45309":"#c4b8a4"}`,background:showCPs?"#b4530920":"transparent",color:showCPs?"#b45309":"#9a8a76",cursor:"pointer",fontSize:11,fontWeight:500 }}>⬥ Change Pts</button>
+              </div>
+            </div>
+
+            <div style={{ background: "#ebe3d6", borderRadius: 14, border: "1px solid #252550", padding: "18px 12px 8px 0" }}>
+              {view !== "radar" ? (
+                <ResponsiveContainer width="100%" height={380}>
+                  <ComposedChart data={chartData} margin={{ top: 28, right: 18, left: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#d6cab8" />
+                    <XAxis dataKey="year" tick={{ fill: "#8a7a66", fontSize: 11 }} tickLine={{ stroke: "#c4b8a4" }} axisLine={{ stroke: "#c4b8a4" }} />
+                    <YAxis tick={{ fill: "#8a7a66", fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={v=>(v*100).toFixed(0)+"%"} />
+                    <Tooltip content={<ChartTip />} />
+                    {showCPs && Object.keys(allCPs).map(yr=><ReferenceLine key={yr} x={+yr} stroke="#d97706" strokeDasharray="6 3" strokeWidth={2} label={{ value:yr,position:"top",fill:"#b45309",fontSize:10,fontWeight:700 }} />)}
+                    {view === "stacked"
+                      ? ALL_KEYS.filter(k=>activeKeys.has(k)).map(k=><Area key={k} type="monotone" dataKey={k} stackId="1" stroke={CATS[k].color} fill={CATS[k].color} fillOpacity={0.45} strokeWidth={1.5} />)
+                      : ALL_KEYS.filter(k=>activeKeys.has(k)).map(k=><Line key={k} type="monotone" dataKey={k} stroke={CATS[k].color} strokeWidth={2.5} dot={false} activeDot={{r:5,fill:CATS[k].color,stroke:"#ebe3d6",strokeWidth:2}} />)
+                    }
+                    <Brush dataKey="year" height={22} fill="#ebe3d6" stroke="#c4b8a4"><BarChart><Bar dataKey="letter_count" fill="#c4b8a4" /></BarChart></Brush>
+                  </ComposedChart>
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer width="100%" height={380}>
+                  <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="68%">
+                    <PolarGrid stroke="#c4b8a4" /><PolarAngleAxis dataKey="feature" tick={{ fill: "#5a4a38", fontSize: 11, fontWeight: 600 }} /><PolarRadiusAxis tick={false} axisLine={false} />
+                    <Radar name="1836–1849" dataKey="early" stroke="#f97316" fill="#f97316" fillOpacity={0.12} strokeWidth={2} />
+                    <Radar name="1850–1864" dataKey="mid" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.12} strokeWidth={2} />
+                    <Radar name="1865–1880" dataKey="late" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.12} strokeWidth={2} />
+                    <Legend wrapperStyle={{ fontSize: 11, color: "#5a4a38" }} />
+                    <Tooltip content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const d = payload[0]?.payload;
+                      return <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 8, padding: "10px 14px" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#3a2a1a", marginBottom: 4 }}>{d?.feature}</div>
+                        <div style={{ fontSize: 11, color: "#f97316" }}>Early: {(d?.eR*100).toFixed(2)}%</div>
+                        <div style={{ fontSize: 11, color: "#06b6d4" }}>Mid: {(d?.mR*100).toFixed(2)}%</div>
+                        <div style={{ fontSize: 11, color: "#8b5cf6" }}>Late: {(d?.lR*100).toFixed(2)}%</div>
+                      </div>;
+                    }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))", gap: 12, marginTop: 20 }}>
+              {ALL_KEYS.map(k => {
+                const cfg = CATS[k];
+                const segs = RAW.segments[k] || [];
+                const cps = RAW.changepoints[k] || [];
+                const isExp = expanded === k;
+                const maxPct = cfg.wordList[0]?.p || 1;
+                return (
+                  <div key={k} onClick={() => setExpanded(isExp ? null : k)} style={{
+                    background: isExp ? "#e2d9cc" : "#ebe3d6", borderRadius: 12, border: `1.5px solid ${isExp ? cfg.color : "#d6cab8"}`,
+                    padding: 16, cursor: "pointer", transition: "all 0.25s",
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <span style={{ width: 11, height: 11, borderRadius: 3, background: cfg.color }} />
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "#3a2a1a" }}>{cfg.label}</span>
+                      </div>
+                      <span style={{ fontSize: 10, color: "#b45309", fontWeight: 700 }}>{cps.length ? `CP: ${cps.join(", ")}` : "—"}</span>
+                    </div>
+
+                    <div style={{ marginBottom: 12, padding: "10px 8px", background: "#f5f0e6", borderRadius: 8, border: "1px solid #252550" }}>
+                      <div style={{ fontSize: 10, letterSpacing: 1.5, color: cfg.color, textTransform: "uppercase", fontWeight: 700, marginBottom: 8 }}>
+                        Top Words in Corpus ({cfg.wordList.reduce((a,b)=>a+b.n,0).toLocaleString()} total)
+                      </div>
+                      {cfg.wordList.slice(0, isExp ? 10 : 4).map((item, i) => (
+                        <WordBar key={i} word={item.w} pct={item.p} color={cfg.color} maxPct={maxPct} />
+                      ))}
+                      {!isExp && cfg.wordList.length > 4 && (
+                        <div style={{ fontSize: 10, color: "#8a7a66", textAlign: "center", marginTop: 4 }}>click to show all {cfg.wordList.length} words ▾</div>
+                      )}
+                    </div>
+
+                    {segs.map((s, i) => {
+                      const pct = i > 0 ? ((s.mean - segs[i-1].mean) / segs[i-1].mean * 100) : null;
+                      return (
+                        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "5px 10px", background: i%2===0 ? "#f5f0e6" : "#e2d9cc", borderRadius: 5, marginBottom: 2 }}>
+                          <span style={{ fontSize: 12, color: "#6a5a48" }}>{s.start_year}–{s.end_year}</span>
+                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{(s.mean*100).toFixed(2)}%</span>
+                            {pct !== null && <span style={{ fontSize: 10, fontWeight: 600, color: pct>0 ? "#4ade80" : "#fb923c" }}>{pct>0?"↑":"↓"}{Math.abs(pct).toFixed(1)}%</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ marginTop: 22, background: "#ebe3d6", borderRadius: 14, border: "1px solid #252550", padding: 22 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#3a2a1a", margin: "0 0 14px" }}>Key Findings</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
+                {[
+                  { color: "#f97316", title: "1st-Person Decline (1845)", text: "\"I\", \"me\", \"my\" drop 18.5% as Eliot shifts from personal devotional letters to broader intellectual discourse in Coventry." },
+                  { color: "#ec4899", title: "Conjunction Simplification (1848)", text: "\"and\", \"that\", \"which\" usage drops 12.6%, signaling a move from elaborate evangelical sentence structures to cleaner modern prose." },
+                  { color: "#3b82f6", title: "Preposition Rise (1858)", text: "\"to\", \"of\", \"in\" increase 5.5% as Eliot develops the complex spatial and relational descriptions of her fiction-writing years." },
+                  { color: "#06b6d4", title: "2nd-Person Increase (1850)", text: "\"you\" and \"your\" rise 12.5% after 1850, reflecting more directly engaged, reader-oriented correspondence with publishers." },
+                ].map((f, i) => (
+                  <div key={i} style={{ padding: 14, background: "#f5f0e6", borderRadius: 8, borderLeft: `3px solid ${f.color}` }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: f.color, marginBottom: 5 }}>{f.title}</div>
+                    <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>{f.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginTop: 14, padding: 12, fontSize: 10, color: "#8a7a66", lineHeight: 1.5 }}>
+              Word frequencies computed across 656,031 total words in 2,166 letters. Binary segmentation with BIC penalty. Drag brush to zoom.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<FuncWordViz />);
+  </script>
+</body>
+</html>
