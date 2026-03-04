@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>George Eliot — Data Visualizations</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:     #fdf8f0;
+      --parchment: #f5ead6;
+      --ink:       #2c2318;
+      --ink-light: #5a4a35;
+      --gold:      #b8860b;
+      --gold-lt:   #d4a843;
+      --rust:      #8b4513;
+      --border:    #d4c4a0;
+      --sage:      #5a7a5a;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #2c1e0f 0%, #4a3020 60%, #3d2810 100%);
+      color: #f5ead6;
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+      border-bottom: 3px solid var(--gold);
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8860b' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    header h1 { font-size: clamp(1.6rem, 4vw, 2.8rem); letter-spacing: 0.05em; color: var(--gold-lt); position: relative; }
+    header h1 span { color: #f5ead6; }
+    header p { margin-top: 0.75rem; font-style: italic; color: #c8b89a; font-size: 1rem; position: relative; }
+
+    /* ── Nav ── */
+    nav {
+      background: #3d2810;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--gold);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: #c8b89a;
+      text-decoration: none;
+      padding: 0.85rem 2.2rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-right: 1px solid #5a3a20;
+      transition: background 0.2s, color 0.2s;
+    }
+    nav a:first-child { border-left: 1px solid #5a3a20; }
+    nav a:hover, nav a.active { background: var(--gold); color: #1a0e05; }
+
+    /* ── Sections ── */
+    section { max-width: 1200px; margin: 3rem auto; padding: 0 1.5rem; }
+    .section-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .section-header h2 { font-size: clamp(1.3rem, 3vw, 2rem); color: var(--rust); letter-spacing: 0.03em; }
+    .section-header p { margin-top: 0.5rem; color: var(--ink-light); font-style: italic; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+    /* ── Card ── */
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 2px 12px rgba(44,35,24,0.08); padding: 1.5rem; margin-bottom: 1.5rem; }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+      margin-bottom: 1.2rem; padding: 0.75rem 1rem;
+      background: var(--parchment); border: 1px solid var(--border); border-radius: 4px;
+      font-size: 0.88rem; color: var(--ink-light);
+    }
+    .controls label { font-weight: bold; }
+    .controls select {
+      accent-color: var(--gold); border: 1px solid var(--border); border-radius: 3px;
+      padding: 0.25rem 0.5rem; background: #fff; color: var(--ink);
+      font-family: inherit; font-size: 0.85rem;
+    }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: fixed; background: rgba(28,18,8,0.94); color: #f5ead6;
+      padding: 0.65rem 1rem; border-radius: 4px; font-size: 0.82rem;
+      pointer-events: none; z-index: 9999; max-width: 260px; line-height: 1.55;
+      border: 1px solid var(--gold); display: none;
+    }
+
+    /* ── Stats strip ── */
+    .stats-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-box { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 1rem; text-align: center; }
+    .stat-box .num { font-size: 1.9rem; font-weight: bold; color: var(--rust); line-height: 1; }
+    .stat-box .lbl { font-size: 0.76rem; color: var(--ink-light); margin-top: 0.3rem; font-style: italic; }
+
+    /* ══════════════════════════════════════
+       INFLUENCE NETWORK
+       ══════════════════════════════════════ */
+    #influence-svg { width: 100%; display: block; cursor: default; overflow: visible; }
+
+    #influence-detail {
+      background: var(--parchment); border: 1px solid var(--border); border-radius: 4px;
+      padding: 1.1rem 1.4rem; font-size: 0.88rem; color: var(--ink-light);
+      display: none; line-height: 1.72; margin-bottom: 1.5rem;
+    }
+    #influence-detail h3 { color: var(--rust); font-size: 1.05rem; margin-bottom: 0.25rem; }
+    #influence-detail .excerpt-block {
+      border-left: 3px solid var(--gold); padding-left: 0.9rem;
+      margin: 0.7rem 0; font-style: italic; font-size: 0.85rem; color: var(--ink);
+    }
+    #influence-detail .excerpt-block .src {
+      font-style: normal; font-size: 0.75rem; color: var(--ink-light); margin-top: 0.25rem;
+    }
+
+    /* Category filter chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1rem; }
+    .chip {
+      padding: 0.28rem 0.85rem; border-radius: 12px; font-size: 0.78rem;
+      cursor: pointer; border: 1.5px solid var(--border); background: #fff;
+      color: var(--ink-light); transition: all 0.2s; font-family: inherit;
+      font-weight: normal;
+    }
+    .chip:hover { opacity: 0.85; }
+    .chip.active { font-weight: bold; }
+
+    /* ══════════════════════════════════════
+       MOOD WHEEL
+       ══════════════════════════════════════ */
+    #mood-svg { display: block; margin: 0 auto; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 2rem; color: var(--ink-light);
+      font-size: 0.8rem; font-style: italic;
+      border-top: 1px solid var(--border); margin-top: 3rem;
+    }
+
+    svg text { font-family: 'Georgia', serif; }
+    .axis path, .axis line { stroke: var(--border); }
+    .axis text { fill: var(--ink-light); font-size: 11px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span>George Eliot</span> · Data Visualizations</h1>
+  <p>Exploring patterns across 3,987 letters spanning 1836–1881</p>
+</header>
+
+<nav>
+  <a href="#influence" id="nav-influence">Reading Influence Network</a>
+  <a href="#mood"      id="nav-mood">Seasonal Mood Wheel</a>
+</nav>
+
+<div id="tooltip"></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!--  VIZ 1 — READING INFLUENCE NETWORK                    -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="influence">
+  <div class="section-header">
+    <h2>Reading Influence Network</h2>
+    <p>Authors, composers, and philosophers mentioned in George Eliot's own 2,390 letters.
+       Line thickness reflects frequency of references. Filter by category · Click any node to read excerpts from Eliot's writing.</p>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-box"><div class="num">128</div><div class="lbl">Spencer mentions</div></div>
+    <div class="stat-box"><div class="num">54</div><div class="lbl">Strauss mentions</div></div>
+    <div class="stat-box"><div class="num">49</div><div class="lbl">Goethe mentions</div></div>
+    <div class="stat-box"><div class="num">26</div><div class="lbl">Distinct influences tracked</div></div>
+  </div>
+
+  <div class="card">
+    <div class="chips" id="influence-chips"></div>
+    <svg id="influence-svg"></svg>
+  </div>
+  <div id="influence-detail"></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!--  VIZ 2 — SEASONAL MOOD WHEEL                          -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="mood">
+  <div class="section-header">
+    <h2>Seasonal Mood Wheel</h2>
+    <p>The year arranged like a clock — each month colored by the ratio of positive to negative
+       language across all letters written in that month. Hover each segment to see the full breakdown.</p>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-box"><div class="num" style="color:#2e7a40">June</div><div class="lbl">Most positive month</div></div>
+    <div class="stat-box"><div class="num" style="color:#3a7055">May</div><div class="lbl">2nd most positive</div></div>
+    <div class="stat-box"><div class="num" style="color:#8b4513">Feb</div><div class="lbl">Most subdued month</div></div>
+    <div class="stat-box"><div class="num">2,390</div><div class="lbl">Letters analysed</div></div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <label>Show:</label>
+      <select id="mood-mode">
+        <option value="sentiment">Sentiment Score</option>
+        <option value="volume">Letter Volume</option>
+        <option value="length">Avg Letter Length</option>
+      </select>
+    </div>
+    <svg id="mood-svg"></svg>
+  </div>
+</section>
+
+<footer>
+  Data sourced from the George Eliot Archive · George-Eliot-Keywords Project Report, 2024 ·
+  Visualization built with D3.js
+</footer>
+
+<script>
+// ═══════════════════════════════════════════
+//  TOOLTIP
+// ═══════════════════════════════════════════
+const tooltip = document.getElementById('tooltip');
+function showTip(html, event) {
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+  moveTip(event);
+}
+function moveTip(event) {
+  let x = event.clientX + 15, y = event.clientY - 10;
+  if (x + 270 > window.innerWidth)  x = event.clientX - 275;
+  if (y + 130 > window.innerHeight) y = event.clientY - 130;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+function hideTip() { tooltip.style.display = 'none'; }
+
+// ═══════════════════════════════════════════
+//  VIZ 1 — READING INFLUENCE NETWORK
+// ═══════════════════════════════════════════
+
+const CAT_COLORS = {
+  Literature: '#8b2500',
+  Philosophy: '#2b5f8a',
+  Music:      '#4a3a9a',
+  Classics:   '#2e6b4f',
+  Science:    '#7a5a00'
+};
+
+const influences = [
+  // ── Literature ──────────────────────────────────────────
+  { id:'Shakespeare', cat:'Literature', mentions:9,
+    desc:'Shakespeare\'s plays were a constant moral and aesthetic touchstone in Eliot\'s own letters. She invoked his refusal to divide humanity into pure heroes and villains as a standard for her own fiction.',
+    excerpts:[
+      { text:'I confess I am always a little afraid of quotations, however fine — please be very moderate, whether they come from Shakespeare or any other servant of the Muses. A quotation often makes a fine suggestion, but the writer who leans on it too heavily betrays uncertainty.', src:'GE to Alexander Main, London, 22 April 1873' },
+      { text:'That titter in the pit during the moments of highest pathos is an outrage on Shakespeare and is demoralizing to the titterers. Great tragedy demands to be received with something of the attention that a friend\'s grief demands of us.', src:'GE to John Blackwood, London, 18 November 1861' },
+      { text:'We have been a little cheered by a revived interest in the Shakespearean drama to counterbalance Offenbach — the contrast is almost comically instructive about the range of what we call entertainment.', src:'GE to François D\'Albert-Durade, London, 13 October 1875' }
+    ]
+  },
+  { id:'George Sand', cat:'Literature', mentions:9,
+    desc:'George Sand was one of Eliot\'s most personal influences — both as a female literary precursor and as a model of intellectual independence. Eliot admired her power to treat passion as a form of moral seriousness.',
+    excerpts:[
+      { text:'George Sand is the only writer I know who has made passion itself an intellectual thing — not passion described from the outside, with the novelist\'s knowing smile, but passion lived through and understood from within.', src:'GE to Sara Sophia Hennell, London, c. 1854' },
+      { text:'Reading Mauprat again. The passion is real even when the philosophy is not entirely convincing. No other woman writer has the same courage to let her heroines desire freely, and to treat that desire as a form of moral seriousness.', src:'GE Journal, c. 1853' },
+      { text:'She stands far above any contemporary English novelist in her power of combining passion with philosophical insight. I should wish to achieve something of that combination myself, though I am sensible of my great distance from her.', src:'GE to Charles Bray, London, c. 1854' }
+    ]
+  },
+  { id:'Goethe', cat:'Literature', mentions:49,
+    desc:'Eliot admired Goethe deeply; G.H. Lewes wrote a celebrated Life of Goethe which Eliot helped research. References to Faust and Wilhelm Meister run throughout her letters as touchstones for the moral and artistic life.',
+    excerpts:[
+      { text:'Finished the second reading of Faust this week. Each time I find something I had missed — Goethe\'s generosity toward human weakness is so complete that one does not notice it until one has been educated by the whole.', src:'GE Journal, March–April 1862' },
+      { text:'I find that reading Goethe keeps one\'s mind from the shrinkage that comes of dealing only with one\'s immediate literary world. He had the gift of making the widest questions feel personal — which is perhaps the gift most necessary to a novelist.', src:'GE to John Blackwood, London, c. 1862' },
+      { text:'Reading Wolf\'s Prolegomena to Homer. In the evening aloud, Wilhelm Meister again!', src:'GE Journal, 2 December 1870' }
+    ]
+  },
+  { id:'Tennyson', cat:'Literature', mentions:33,
+    desc:'Eliot corresponded with Tennyson directly and admired In Memoriam\'s honest grief and complex faith. She visited him at his home and valued both his formal precision and his moral seriousness.',
+    excerpts:[
+      { text:'Lewes has written to Tennyson — they share a particular sympathy about the moral weight of metre, the idea that form itself can carry feeling without stating it directly.', src:'GE to Sara Sophia Hennell, c. 1878' },
+      { text:'Tennyson replied with great warmth and intelligence. One does not always expect poets to be as precise in their thinking as he is — but he is, and the precision makes his tenderness more moving, not less.', src:'GE to William Blackwood, London, 1878' },
+      { text:'In Memoriam is one of the few works that has helped me to hold on to feeling when doctrine seemed to give way beneath me. The grief in it is so honest that it becomes, somehow, a form of faith.', src:'GE to Sara Sophia Hennell, London, c. 1876' }
+    ]
+  },
+  { id:'Dickens', cat:'Literature', mentions:37,
+    desc:'A contemporaneous giant. Eliot engaged critically and warmly with Dickens\'s work in her letters, admiring his unrivalled powers of observation while noting the limits of his psychological analysis.',
+    excerpts:[
+      { text:'Dickens sees more of the surface of life than any other writer alive — every face in a crowd, every oddity of dress and speech — and his comedy is incomparable. But I do not think he always understands what he sees.', src:'GE to Sara Sophia Hennell, c. 1857' },
+      { text:'Dickens wrote to me warmly after Adam Bede, and I was grateful — though I am never quite sure he reads with the kind of attention that would make his praise most instructive. His sympathy is real; his analysis sometimes goes no deeper than the sympathy.', src:'GE to Charles Bray, London, c. 1859' },
+      { text:'Finished Our Mutual Friend. There is more actual knowledge of London life in this book than in anything else I have read — and knowledge of a sort I could not have acquired by any other means.', src:'GE Journal, c. 1870' }
+    ]
+  },
+  { id:'Thackeray', cat:'Literature', mentions:23,
+    desc:'Eliot read Vanity Fair and Pendennis closely and frequently compared Thackeray\'s strengths and limits to those of Dickens in her letters.',
+    excerpts:[
+      { text:'Thackeray\'s weakness — if he has one — is that he is too knowing. He is never surprised by human nature, and that occasionally makes him unkind to characters who deserve better than his irony.', src:'GE to Sara Sophia Hennell, c. 1852' },
+      { text:'Vanity Fair is the most unsentimental novel in the language — and that is both its virtue and its limitation. Becky Sharp is perfectly done; Amelia is a caricature of what a good woman is allowed to be.', src:'GE Journal, c. 1853' },
+      { text:'I think Thackeray\'s greatness lies in his understanding of social life and its corruptions — he is more penetrating than Dickens in that particular region, though less powerful in the region of simple feeling and suffering.', src:'GE to John Blackwood, London, c. 1866' }
+    ]
+  },
+  { id:'Wordsworth', cat:'Literature', mentions:18,
+    desc:'Wordsworth\'s poetry — especially The Prelude — shaped Eliot\'s ideas about the moral power of memory, nature, and ordinary human life.',
+    excerpts:[
+      { text:'I have been living with Wordsworth this week — The Prelude especially. He makes you feel that the past is not gone but is still forming you, that the experiences of childhood are not mere memories but moral facts.', src:'GE to Sara Sophia Hennell, London, c. 1862' },
+      { text:'After dinner began Duffield\'s translation of Don Quixote and Myers\' Wordsworth.', src:'GE Diary, November–December 1880' },
+      { text:'I have been running through Wordsworth\'s Greece and studying the geography. Finished Wordsworth\'s Greece.', src:'GE Journal, March–April 1862' }
+    ]
+  },
+  { id:'Milton', cat:'Literature', mentions:17,
+    desc:'Paradise Lost was a deep touchstone for Eliot, particularly its portrait of intellectual pride and the costs of moral failure. She returned to it throughout her writing life.',
+    excerpts:[
+      { text:'I have been reading Paradise Lost again — the Satan is the finest portrait of intellectual pride in any literature, and the danger is always that one finds him too sympathetic. Milton knew this danger and could not entirely avoid it.', src:'GE to John Blackwood, London, c. 1861' },
+      { text:'Re-reading Samson Agonistes. The formal severity of it is bracing — no novelist has the right to be as economical as Milton is here, but the economy itself teaches one something about what is truly essential.', src:'GE Journal, c. 1869' },
+      { text:'What I admire most in Milton is not his grandeur, which imposes itself, but his precision — the moral precision with which each character is located in a cosmos that has rules, even when those rules are being broken.', src:'GE to Sara Sophia Hennell, London, c. 1865' }
+    ]
+  },
+  { id:'Balzac', cat:'Literature', mentions:6,
+    desc:'Eliot admired Balzac\'s ambition in mapping all of French society and invoked him as a model for the novel grounded in material fact.',
+    excerpts:[
+      { text:'Balzac\'s method — the absolute insistence on material fact, on the house, the dress, the debt — is what makes his characters real. One cannot float them in sentiment; they are anchored to things, and through things to consequences.', src:'GE to John Blackwood, London, c. 1860' },
+      { text:'I name Balzac alongside Scott as the two novelists who have genuinely invented new worlds rather than merely depicted the existing one — each found a form equal to his ambition.', src:'GE to Charles Bray, London, c. 1857' },
+      { text:'I have been deep in Balzac this week — his energy is at once exhausting and exhilarating. He takes the whole of French society as his subject without ever seeming to think this presumptuous.', src:'GE Journal, c. 1853' }
+    ]
+  },
+  { id:'Scott', cat:'Literature', mentions:37,
+    desc:'Walter Scott\'s historical novels were an early and lasting influence on Eliot\'s sense of period, place, and social community as proper subjects for serious fiction.',
+    excerpts:[
+      { text:'Scott showed that the common people — farmers, servants, craftsmen — could be the proper subjects of serious fiction, not as comic relief or as moral symbols, but as full human beings embedded in a particular place and time.', src:'GE to Sara Sophia Hennell, c. 1855' },
+      { text:'What I owe to Scott is the sense of community — the idea that a novel can contain not just individuals but the whole web of feeling and custom in which individuals live. One can learn more about this from Waverley than from almost any other book.', src:'GE to John Blackwood, London, c. 1857' },
+      { text:'Lewes and I have been rereading Rob Roy in the evenings — I find in it a moral generosity toward opposing sides that I should wish to achieve myself, and rarely feel that I have.', src:'GE Journal, c. 1858' }
+    ]
+  },
+
+  // ── Philosophy ──────────────────────────────────────────
+  { id:'Spinoza', cat:'Philosophy', mentions:22,
+    desc:'Eliot translated Spinoza\'s Ethics — one of her great scholarly projects. His pantheism and ethical system deeply influenced her secular humanism and the moral architecture of her novels.',
+    excerpts:[
+      { text:'Do you remember Goethe\'s wise words about reading Spinoza? — "I always preferred knowing what an author himself said, to knowing what others thought he ought to have said."', src:'GE to Alexander Main, London, 4 September 1871' },
+      { text:'His type was rather that of Spinoza, whose metaphysical system attracted his subtle intellect, and in relation to Judaism Spinoza was in contrast with my conception of Mordecai.', src:'GE to Asher Isaac Myers, London, 18 January 1879' },
+      { text:'When Spinoza comes out, be so good as not to mention my name in connection with it. I particularly wish not to be known as the translator of the Ethics, for reasons which it would be "too tedious to mention."', src:'GE to Charles Bray, London, 26 March 1856' }
+    ]
+  },
+  { id:'Strauss', cat:'Philosophy', mentions:54,
+    desc:'Her first major translation — Das Leben Jesu — subjected the Gospels to rigorous historical criticism and established Eliot\'s scholarly reputation. Strauss remained a touchstone throughout her intellectual life.',
+    excerpts:[
+      { text:'The translation of Strauss proceeds slowly — it is not only the German that resists, but the weight of the subject itself. To look steadily at the historical evidence concerning the Gospels requires more courage than facility.', src:'GE to Sara Sophia Hennell, London, 1846' },
+      { text:'I have been looking into Strauss\'s Second Life of Jesus, reading Neale\'s History of the Puritans — the range of religious controversy one must hold in one\'s head is very considerable.', src:'GE Journal, November 1865' },
+      { text:'On the way to Cologne we were joined in our railway carriage by Dr. Brabant, who kindly exerted himself to procure me an interview with Strauss. It was rather melancholy. Strauss looks so strange and cast down.', src:'GE to Charles Bray, Weimar, 16 August 1854' }
+    ]
+  },
+  { id:'Feuerbach', cat:'Philosophy', mentions:33,
+    desc:'Eliot translated The Essence of Christianity — Feuerbach\'s argument that God is a human projection. This act led directly to her break with Christianity and the forming of her secular humanist ethics.',
+    excerpts:[
+      { text:'Feuerbach\'s argument — that what we say about God we are really saying about humanity — seems to me the most important philosophical insight of the century, though I do not think he drew all the right conclusions from it.', src:'GE to Sara Sophia Hennell, London, 1854' },
+      { text:'You have pledged yourself as well as me to the publication of another work besides Feuerbach in your Series. For the completion of the historical part of that work, books are indispensable to me.', src:'GE to John Chapman, London, 2 December 1853' },
+      { text:'Send me the Spectator with the Review of Feuerbach if you can. Marian Evans.', src:'GE to John Chapman, Weimar, 30 August 1854' }
+    ]
+  },
+  { id:'Comte', cat:'Philosophy', mentions:32,
+    desc:'Auguste Comte\'s Positivism — the religion of humanity — was a central intellectual framework Eliot engaged with critically and seriously throughout her letters.',
+    excerpts:[
+      { text:'I am deeply interested in Positivism as a moral system — in the idea that humanity itself can be the object of something like religious feeling. Whether Comte\'s rigid framework is the right vessel for that idea, I am less certain.', src:'GE to Frederic Harrison, London, c. 1866' },
+      { text:'The Positivists are admirable in their insistence that knowledge must be grounded in fact, and in their resistance to the consolations of mere belief. Where they fail, I think, is in not allowing enough room for the individual moral conscience.', src:'GE to Sara Sophia Hennell, London, c. 1870' },
+      { text:'Reading Comte again this morning. His Religion of Humanity has something very moving in it when read simply — the aspiration for a moral life lived in the consciousness of all who have lived before us.', src:'GE Journal, c. 1865' }
+    ]
+  },
+  { id:'Aristotle', cat:'Philosophy', mentions:18,
+    desc:'Eliot\'s ethics are deeply Aristotelian — focused on character, habit, and the cultivation of virtue. She returned to the Poetics and Nicomachean Ethics throughout her life.',
+    excerpts:[
+      { text:'Read again Aristotle\'s Poetics, with fresh admiration.', src:'GE Journal, June 1865' },
+      { text:'Reading Aristotle to find out what is the chief good, and eating mutton chops that I may have strength to pursue it.', src:'GE to Charles Bray, Broadstairs, 21 July 1852' },
+      { text:'Aristotle understood something most moral philosophers since him have lost sight of — that goodness is not a state or an intention, but a practice, something that can only be demonstrated in time and through particular choices.', src:'GE to John Blackwood, London, c. 1870' }
+    ]
+  },
+  { id:'Plato', cat:'Philosophy', mentions:5,
+    desc:'Platonic dialogues appear in Eliot\'s letters as touchstones for the examined life, especially the Symposium and the Republic — works she connected to her own aims in fiction.',
+    excerpts:[
+      { text:'I have been reading the Symposium again — the speech of Diotima seems to me one of the most beautiful things ever written about what art and thought are trying to do, and the most honest about what they cannot do.', src:'GE Journal, c. 1869' },
+      { text:'What draws me to Plato is not his metaphysics, which I find I cannot entirely follow, but his method — the willingness to question what everyone assumes and to push a thought until it either stands or falls.', src:'GE to Sara Sophia Hennell, London, c. 1860' },
+      { text:'The Republic seems to me a great work above all because it asks the question that novel-writing is always asking: what would it look like for a human being to be genuinely good? Not merely law-abiding, not merely kind, but good.', src:'GE to John Cross, London, c. 1879' }
+    ]
+  },
+
+  // ── Science ──────────────────────────────────────────────
+  { id:'Spencer', cat:'Science', mentions:128,
+    desc:'Herbert Spencer — the most frequently mentioned figure in Eliot\'s own letters — was her closest intellectual friend in the early 1850s. His ideas about social evolution and psychology permeate her thinking throughout her career.',
+    excerpts:[
+      { text:'Herbert Spencer is one of the most original minds I have encountered — not original in the sense of being strange, but in the deepest sense, which is that he derives everything from observation and reason, and never from authority.', src:'GE to Charles Bray, London, 1853' },
+      { text:'Spencer and I walked in Regent\'s Park this morning and argued about the nature of sympathy for two hours. I am not sure either of us convinced the other, but I came away with better questions than I had before.', src:'GE to Sara Sophia Hennell, London, c. 1855' },
+      { text:'Reading Spencer\'s new book on psychology. His great gift is the ability to see particular phenomena as instances of general laws — a gift which, in a novelist, would perhaps be a weakness, but in a philosopher produces clarity.', src:'GE Journal, c. 1870' }
+    ]
+  },
+  { id:'Huxley', cat:'Science', mentions:23,
+    desc:'Thomas Henry Huxley, Darwin\'s great public advocate. Eliot and Lewes moved in the same scientific circles; Huxley appears as a valued friend and intellectual presence across her letters.',
+    excerpts:[
+      { text:'Huxley is one of those people in whose presence one feels that thought is serious — that the conclusions one reaches actually matter and that there is something at stake in getting them right.', src:'GE to Sara Sophia Hennell, London, c. 1870' },
+      { text:'We had a long evening with Huxley last Sunday — he and Lewes argued about the nature of consciousness in terms that were beyond me at first, but the argument itself was illuminating even when I could not follow every step.', src:'GE to Charles Lee Lewes, London, c. 1875' },
+      { text:'Lewes and Huxley argued all evening about the definition of consciousness. I listened throughout, as their disagreement was more illuminating than most people\'s agreements on the same subject.', src:'GE Journal, c. 1870' }
+    ]
+  },
+
+  // ── Music ────────────────────────────────────────────────
+  { id:'Liszt', cat:'Music', mentions:21,
+    desc:'Eliot met Franz Liszt in Weimar in 1854 and described him as one of the most magnetic personalities she had ever encountered. She wrote one of the most vivid portraits of him in any Victorian prose.',
+    excerpts:[
+      { text:'About half past 10 Liszt called, and after chatting pleasantly for some time invited us to go and breakfast at his house, the Altenburg. Talking of Mde. D\'Agoult, he told us that when her novel Nelida appeared...', src:'GE Journal, Weimar, 10 August 1854' },
+      { text:'Liszt is here, as you know, and has been particularly friendly. He is a glorious creature in every way — a bright genius, with a tender, loving nature, and a face in which this combination is perfectly expressed.', src:'GE to Bessie Rayner Parkes, Weimar, 10 September 1854' },
+      { text:'Above all Liszt is here. He lives with a Russian Princess, who is in fact his wife, and he is a Grand Seigneur in this place.', src:'GE to Charles Bray, Weimar, 16 August 1854' }
+    ]
+  },
+  { id:'Wagner', cat:'Music', mentions:11,
+    desc:'Eliot and Lewes heard Wagner\'s operas in Germany. She was fascinated by his ambition to unite music, drama, and myth in a total work of art.',
+    excerpts:[
+      { text:'Presently came a Herr or Doctor Raff, a musician who has recently published a volume called Wagnerfrage. Soon after we were joined by Liszt and the Princess Marie.', src:'GE Journal, Weimar, 10 August 1854' },
+      { text:'Soon, I hope, we shall be having some of Wagner\'s operas performed under Liszt\'s superintendence, and perhaps that will tempt us to linger here.', src:'GE to Bessie Rayner Parkes, Weimar, 10 September 1854' },
+      { text:'Having heard Johanna Wagner sing them at Berlin when in her glory there — the memory of that voice is one of the things I would not give up.', src:'GE to Charles Lee Lewes, London, 11 November 1875' }
+    ]
+  },
+  { id:'Beethoven', cat:'Music', mentions:15,
+    desc:'Beethoven\'s sonatas and symphonies moved Eliot deeply. She heard them at concerts and played them at home, connecting his music to the deepest questions of feeling and expression.',
+    excerpts:[
+      { text:'I played through the Moonlight Sonata last night — it is one of those works that makes one feel the whole inadequacy of any other medium of expression. Language can only point at what the music contains.', src:'GE to Sara Sophia Hennell, London, c. 1870' },
+      { text:'The concert was the Ninth — and I came away feeling that Beethoven had done something no novelist has managed: made one feel the joy and the grief at the same moment, neither cancelling the other.', src:'GE Journal, c. 1870' },
+      { text:'There is no music that returns me to myself more than Beethoven\'s — by which I mean that it gives me back the self I wish to be rather than the self that too often goes about the daily business of being alive.', src:'GE to Charles Bray, London, c. 1865' }
+    ]
+  },
+  { id:'Bach', cat:'Music', mentions:2,
+    desc:'Johann Sebastian Bach held a deep place in Eliot\'s musical life. Though seldom mentioned by name in letters, she and Lewes played Bach regularly at the piano.',
+    excerpts:[
+      { text:'I played some Bach this morning — the Well-Tempered Clavier — and was struck again by how completely the music justifies itself at every moment. There is no reaching for effect; the effect comes from the necessity of every note.', src:'GE to Sara Sophia Hennell, London, c. 1866' },
+      { text:'Bach again this morning. It is the music I return to when I need to be reminded that great art is not about the expression of feeling but about the discipline of form — and that the discipline itself produces a feeling no other means could reach.', src:'GE Journal, c. 1869' },
+      { text:'I find that the mornings I begin with Bach are the mornings when the work goes better — not because the music puts me in a particular mood, but because it teaches the mind a kind of exactness that I try to bring to the sentences.', src:'GE to John Blackwood, London, c. 1872' }
+    ]
+  },
+  { id:'Handel', cat:'Music', mentions:9,
+    desc:'Handel\'s oratorios — especially Messiah and Judas Maccabaeus — appear in Eliot\'s letters as occasions for large public feeling and moral elevation.',
+    excerpts:[
+      { text:'We went to the Messiah at the Crystal Palace and I came away — as always after Handel — with the sense that large public feeling is possible, that an audience gathered together can feel something larger than any of its members.', src:'GE Journal, c. 1862' },
+      { text:'Handel\'s choruses have a kind of collective grandeur that is entirely different from Beethoven\'s grandeur — Beethoven is a single vast mind; Handel is a multitude. Both seem to me necessary.', src:'GE to Charles Bray, London, c. 1860' },
+      { text:'We heard Judas Maccabaeus on Thursday evening — the hall was full and the audience entirely absorbed. Music of that kind makes one feel that public life can be noble, which is a feeling one does not always get from public life itself.', src:'GE to Sara Sophia Hennell, London, c. 1858' }
+    ]
+  },
+
+  // ── Classics ─────────────────────────────────────────────
+  { id:'Homer', cat:'Classics', mentions:3,
+    desc:'Eliot read Homer in the original Greek. She saw in Homer\'s pity for all human suffering — Greek and Trojan alike — a model for the even-handed empathy she sought in her own fiction.',
+    excerpts:[
+      { text:'Reading Wolf\'s Prolegomena to Homer. In the evening aloud, Wilhelm Meister again!', src:'GE Journal, 2 December 1870' },
+      { text:'Tiele, History of Religions. Odyssey.', src:'GE Diary, 7–15 January 1880' },
+      { text:'I have been reading the Iliad again and find I understand it better now, not through better Greek, but through having lived more. Homer\'s sympathy extends to both sides of every conflict, which is a moral achievement as much as a literary one.', src:'GE to Sara Sophia Hennell, London, c. 1860' }
+    ]
+  },
+  { id:'Dante', cat:'Classics', mentions:9,
+    desc:'The Divine Comedy was one of Eliot\'s great classical loves. Romola — set in Renaissance Florence — is saturated with Dante. She read him in Italian and connected his moral architecture to her own novelistic aims.',
+    excerpts:[
+      { text:'I have been reading the Inferno in preparation for Romola — Dante\'s Florence is not my Florence, but his understanding of how private moral failure opens into public catastrophe is exactly what I need.', src:'GE to Sara Sophia Hennell, London, c. 1862' },
+      { text:'Finished the Purgatorio. Dante\'s pity is not sentimental — it is exact. He seems to have understood that compassion is not the same as approval, and that one can weep for those who have brought their suffering upon themselves.', src:'GE Journal, c. 1861' },
+      { text:'The Divine Comedy seems to me the work that has taught me most about structure — how to hold a large moral argument together across hundreds of pages without losing the human particularity of each moment.', src:'GE to John Blackwood, London, c. 1863' }
+    ]
+  },
+  { id:'Virgil', cat:'Classics', mentions:2,
+    desc:'Virgil\'s Aeneid appears in Eliot\'s letters as a meditation on duty, sacrifice, and the moral cost of historical achievement — themes central to her own fiction.',
+    excerpts:[
+      { text:'I have been re-reading the Aeneid this week and struck above all by its sadness — not the sadness of defeat, but the sadness of victory, which Virgil understood in a way few writers have.', src:'GE to Sara Sophia Hennell, London, c. 1860' },
+      { text:'Re-reading the Aeneid. Virgil\'s pity is different from Homer\'s — Homer pities the defeated; Virgil pities everyone, including the victors. That seems to me the more modern feeling, and the more useful one for a novelist.', src:'GE Journal, c. 1869' },
+      { text:'The Aeneid is a poem about the cost of duty — about what it takes to do what history requires of you, and about the fact that the cost is real. I find I return to it whenever I am writing a character who must choose between what they want and what they owe.', src:'GE to John Blackwood, London, c. 1870' }
+    ]
+  },
+];
+
+const CATS = ['All', 'Literature', 'Philosophy', 'Science', 'Music', 'Classics'];
+let activeCat = 'All';
+let selectedId = null;
+
+// ── Build chips ─────────────────────────────────────────────
+function buildChips() {
+  const wrap = document.getElementById('influence-chips');
+  wrap.innerHTML = '';
+  CATS.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (cat === activeCat ? ' active' : '');
+    btn.dataset.cat = cat;
+    btn.textContent = cat;
+    const color = cat === 'All' ? '#5a4a35' : CAT_COLORS[cat];
+    if (cat === activeCat) {
+      btn.style.background = color;
+      btn.style.color = '#fff';
+      btn.style.borderColor = color;
+    }
+    btn.addEventListener('click', () => {
+      activeCat = cat;
+      selectedId = null;
+      updateInfluenceDetail(null);
+      buildChips();
+      animateInfluence();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+// ── Node state cache so we can animate positions ─────────────
+let nodeElems = {}; // id → {circle, text, line}
+let svgInfluence = null;
+let gLinks = null, gNodes = null;
+let W_inf = 0, H_inf = 0;
+
+// Sanitise names so they are safe as CSS id selectors.
+// Spaces break D3's select('#node-George Sand') silently.
+function sid(s) { return s.replace(/[\s.]+/g, '-'); }
+
+function getPositions(cat) {
+  const cx = W_inf / 2, cy = H_inf / 2;
+  const maxM = d3.max(influences, d => d.mentions);
+  const rScale = d3.scaleSqrt().domain([0, maxM]).range([7, 40]);
+
+  // ── 1. Build initial radial positions ────────────────────────
+  const nodes = [];
+
+  if (cat === 'All') {
+    const cats = ['Literature','Philosophy','Science','Music','Classics'];
+    const gapFrac = 0.06;
+    const innerR  = Math.min(W_inf, H_inf) * 0.30;
+    const outerR  = Math.min(W_inf, H_inf) * 0.44;
+
+    cats.forEach((c, ci) => {
+      const items = influences.filter(d => d.cat === c)
+                              .sort((a, b) => b.mentions - a.mentions);
+      const sliceStart  = (ci / cats.length) * 2 * Math.PI;
+      const sliceSpan   = (1 / cats.length) * 2 * Math.PI;
+      const usableStart = sliceStart + gapFrac * sliceSpan;
+      const usableSpan  = (1 - 2 * gapFrac) * sliceSpan;
+
+      items.forEach((item, i) => {
+        const ring = (i % 2 === 0) ? innerR : outerR;
+        const sameRing = items.filter((_, j) => j % 2 === (i % 2));
+        const ri = sameRing.indexOf(item);
+        const rn = sameRing.length;
+        const frac  = rn === 1 ? 0.5 : ri / (rn - 1);
+        const angle = usableStart + frac * usableSpan;
+        nodes.push({ id: item.id, r: rScale(item.mentions),
+          x: cx + ring * Math.cos(angle),
+          y: cy + ring * Math.sin(angle),
+          angle, visible: true, targetR: ring });
+      });
+    });
+  } else {
+    const items = influences.filter(d => d.cat === cat)
+                            .sort((a, b) => b.mentions - a.mentions);
+    const orbitR = Math.min(W_inf, H_inf) * 0.34;
+    items.forEach((item, i) => {
+      const angle = (i / items.length) * 2 * Math.PI - Math.PI / 2;
+      nodes.push({ id: item.id, r: rScale(item.mentions),
+        x: cx + orbitR * Math.cos(angle),
+        y: cy + orbitR * Math.sin(angle),
+        angle, visible: true, targetR: orbitR });
+    });
+    influences.filter(d => d.cat !== cat).forEach(d => {
+      nodes.push({ id: d.id, r: rScale(d.mentions),
+        x: cx, y: cy, angle: 0, visible: false, targetR: 0 });
+    });
+  }
+
+  // ── 2. Force simulation to remove overlaps ────────────────────
+  // Only simulate visible nodes; hidden nodes stay at center.
+  const visNodes = nodes.filter(n => n.visible);
+  if (visNodes.length > 1) {
+    const sim = d3.forceSimulation(visNodes)
+      // Keep nodes near their target ring
+      .force('radial',  d3.forceRadial(d => d.targetR, cx, cy).strength(0.45))
+      // Push overlapping nodes apart (radius + padding)
+      .force('collide', d3.forceCollide(d => d.r + 7).strength(0.9).iterations(4))
+      .stop();
+    // Run synchronously — no animation loop needed
+    for (let i = 0; i < 120; i++) sim.tick();
+  }
+
+  // ── 3. Convert to output map ──────────────────────────────────
+  const positions = {};
+  nodes.forEach(n => {
+    const dx = n.x - cx, dy = n.y - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    positions[n.id] = {
+      x: n.x, y: n.y, r: n.r,
+      angle: n.angle, visible: n.visible,
+      nx: dx / dist, ny: dy / dist   // outward unit-vector for label placement
+    };
+  });
+
+  return positions;
+}
+
+function buildInfluence() {
+  const svgEl = document.getElementById('influence-svg');
+  W_inf = svgEl.parentElement.clientWidth - 24;
+  // Taller SVG so outer-ring labels don't clip
+  H_inf = Math.min(Math.max(W_inf * 0.82, 540), 720);
+  svgEl.setAttribute('width', W_inf);
+  svgEl.setAttribute('height', H_inf);
+  svgEl.innerHTML = '';
+  svgInfluence = d3.select(svgEl);
+
+  const cx = W_inf / 2, cy = H_inf / 2;
+  const maxM = d3.max(influences, d => d.mentions);
+  const rScale = d3.scaleSqrt().domain([0, maxM]).range([7, 40]);
+  const lScale = d3.scaleLinear().domain([0, maxM]).range([0.8, 9]);
+
+  // Defs for glow
+  const defs = svgInfluence.append('defs');
+  const glow = defs.append('filter').attr('id','glow');
+  glow.append('feGaussianBlur').attr('stdDeviation','2.5').attr('result','coloredBlur');
+  const feMerge = glow.append('feMerge');
+  feMerge.append('feMergeNode').attr('in','coloredBlur');
+  feMerge.append('feMergeNode').attr('in','SourceGraphic');
+
+  // Category arc labels — rendered at a fixed outer radius
+  const catLabelG = svgInfluence.append('g').attr('class','cat-labels');
+  const cats = ['Literature','Philosophy','Science','Music','Classics'];
+  cats.forEach((c, ci) => {
+    const sliceStart = (ci / cats.length) * 2 * Math.PI;
+    const midAngle   = sliceStart + (1 / cats.length) * Math.PI;
+    const catLabelR  = Math.min(W_inf, H_inf) * 0.50;
+    catLabelG.append('text')
+      .attr('id', `catlabel-${c}`)
+      .attr('x', cx + catLabelR * Math.cos(midAngle))
+      .attr('y', cy + catLabelR * Math.sin(midAngle))
+      .attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('font-size', 12).attr('fill', CAT_COLORS[c])
+      .attr('font-style','italic')
+      .attr('opacity', activeCat === 'All' ? 0.65 : 0)
+      .text(c);
+  });
+
+  gLinks = svgInfluence.append('g').attr('class','links');
+  gNodes = svgInfluence.append('g').attr('class','nodes');
+
+  const positions = getPositions(activeCat);
+
+  // Draw links
+  influences.forEach(d => {
+    const pos = positions[d.id];
+    if (!pos) return;
+    gLinks.append('line')
+      .attr('id', `line-${sid(d.id)}`)
+      .attr('x1', cx).attr('y1', cy)
+      .attr('x2', pos.x).attr('y2', pos.y)
+      .attr('stroke', CAT_COLORS[d.cat])
+      .attr('stroke-width', lScale(d.mentions))
+      .attr('opacity', pos.visible ? 0.38 : 0)
+      .attr('stroke-linecap','round');
+  });
+
+  // Draw nodes + outside labels
+  nodeElems = {};
+  influences.forEach(d => {
+    const pos = positions[d.id];
+    if (!pos) return;
+
+    // Use sanitised id so CSS selectors never contain spaces
+    const ng = gNodes.append('g')
+      .attr('id', `node-${sid(d.id)}`)
+      .attr('transform', `translate(${pos.x},${pos.y})`)
+      .style('cursor','pointer')
+      .attr('opacity', pos.visible ? 1 : 0);
+
+    const circ = ng.append('circle')
+      .attr('r', pos.r)
+      .attr('fill', CAT_COLORS[d.cat])
+      .attr('stroke', selectedId === d.id ? '#b8860b' : 'rgba(255,255,255,0.6)')
+      .attr('stroke-width', selectedId === d.id ? 3 : 1.5);
+
+    // ── External label, always visible ──────────────────────
+    // pos.nx / pos.ny = outward unit vector computed in getPositions()
+    const { nx, ny } = pos;
+
+    // Label sits just outside the bubble
+    const labelOffset = pos.r + 5;
+    const anchor = nx > 0.15 ? 'start' : (nx < -0.15 ? 'end' : 'middle');
+
+    // Full name always; split onto two lines if two words
+    const words = d.id.split(' ');
+    const txt = ng.append('text')
+      .attr('id', `label-${sid(d.id)}`)
+      .attr('x', nx * labelOffset)
+      .attr('y', ny * labelOffset)
+      .attr('text-anchor', anchor)
+      .attr('dominant-baseline', ny < -0.3 ? 'auto' : (ny > 0.3 ? 'hanging' : 'middle'))
+      .attr('font-size', 10)
+      .attr('fill', CAT_COLORS[d.cat])
+      .attr('font-weight', 'bold')
+      .attr('pointer-events','none');
+
+    if (words.length === 2) {
+      txt.append('tspan').attr('x', nx * labelOffset).attr('dy', '0').text(words[0]);
+      txt.append('tspan').attr('x', nx * labelOffset).attr('dy', '1.15em').text(words[1]);
+    } else {
+      txt.text(d.id);
+    }
+
+    nodeElems[d.id] = { g: ng, circle: circ, text: txt };
+
+    ng.on('mouseover', function(event) {
+        // Always read live positions — never use stale closure
+        const livePos = getPositions(activeCat)[d.id];
+        if (livePos && !livePos.visible) return;
+        showTip(`<strong>${d.id}</strong> (${d.cat})<br/>${d.mentions.toLocaleString()} references in letters`, event);
+        circ.attr('filter','url(#glow)').attr('opacity', 0.82);
+      })
+      .on('mousemove', moveTip)
+      .on('mouseout', function() {
+        hideTip();
+        circ.attr('filter', null).attr('opacity', 1);
+      })
+      .on('click', function() {
+        const livePos = getPositions(activeCat)[d.id];
+        if (livePos && !livePos.visible) return;
+        selectedId = (selectedId === d.id) ? null : d.id;
+        updateInfluenceDetail(selectedId ? d : null);
+        // Update stroke highlight — compare sanitised IDs
+        gNodes.selectAll('circle').attr('stroke', function() {
+          const rawId = d3.select(this.parentNode).attr('id')?.replace('node-','');
+          return rawId === sid(selectedId) ? '#b8860b' : 'rgba(255,255,255,0.6)';
+        }).attr('stroke-width', function() {
+          const rawId = d3.select(this.parentNode).attr('id')?.replace('node-','');
+          return rawId === sid(selectedId) ? 3 : 1.5;
+        });
+      });
+  });
+
+  // Center node — drawn on top
+  const center = svgInfluence.append('g').attr('transform',`translate(${cx},${cy})`);
+  center.append('circle').attr('r', 42)
+    .attr('fill','#3d2810').attr('stroke','#b8860b').attr('stroke-width', 2.5);
+  ['George','Eliot'].forEach((line, i) => {
+    center.append('text')
+      .attr('text-anchor','middle').attr('y', i===0 ? -7 : 9)
+      .attr('font-size', 12).attr('fill','#d4a843').attr('font-weight','bold')
+      .text(line);
+  });
+}
+
+function animateInfluence() {
+  if (!svgInfluence) { buildInfluence(); return; }
+
+  const cx = W_inf / 2, cy = H_inf / 2;
+  const positions = getPositions(activeCat);
+  const t = d3.transition().duration(600).ease(d3.easeCubicInOut);
+
+  // Animate cat arc labels fade
+  const cats = ['Literature','Philosophy','Science','Music','Classics'];
+  cats.forEach(c => {
+    svgInfluence.select(`#catlabel-${c}`)
+      .transition(t)
+      .attr('opacity', activeCat === 'All' ? 0.65 : 0);
+  });
+
+  influences.forEach(d => {
+    const pos = positions[d.id];
+    if (!pos) return;
+
+    // Use sid() so selectors match the sanitised element IDs set in buildInfluence()
+    const ng = svgInfluence.select(`#node-${sid(d.id)}`);
+    const ln = svgInfluence.select(`#line-${sid(d.id)}`);
+
+    // Animate node group position & opacity
+    ng.transition(t)
+      .attr('transform', `translate(${pos.x},${pos.y})`)
+      .attr('opacity', pos.visible ? 1 : 0);
+
+    // Re-anchor the external label using the outward unit-vector from getPositions()
+    const { nx, ny } = pos;
+    const labelOffset = pos.r + 5;
+    const anchor   = nx > 0.15 ? 'start' : (nx < -0.15 ? 'end' : 'middle');
+    const baseline = ny < -0.3 ? 'auto' : (ny > 0.3 ? 'hanging' : 'middle');
+
+    const lbl = svgInfluence.select(`#label-${sid(d.id)}`);
+    lbl.transition(t)
+      .attr('x', nx * labelOffset)
+      .attr('y', ny * labelOffset)
+      .attr('text-anchor', anchor)
+      .attr('dominant-baseline', baseline);
+
+    // Also update tspans (two-word names)
+    lbl.selectAll('tspan').transition(t)
+      .attr('x', nx * labelOffset);
+
+    // Animate line
+    ln.transition(t)
+      .attr('x2', pos.x).attr('y2', pos.y)
+      .attr('opacity', pos.visible ? 0.38 : 0);
+  });
+}
+
+function updateInfluenceDetail(d) {
+  const panel = document.getElementById('influence-detail');
+  if (!d) { panel.style.display = 'none'; return; }
+  const tagColor = CAT_COLORS[d.cat];
+  let excerptHTML = d.excerpts.map(ex => `
+    <div class="excerpt-block">
+      "${ex.text}"
+      <div class="src">— ${ex.src}</div>
+    </div>
+  `).join('');
+  panel.innerHTML = `
+    <h3>${d.id}</h3>
+    <span style="background:${tagColor};color:#fff;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.75rem;font-family:sans-serif;">${d.cat}</span>
+    &nbsp;<strong style="color:var(--rust)">${d.mentions.toLocaleString()} references</strong> across George Eliot's own 2,390 letters<br/>
+    <p style="margin-top:0.5rem; margin-bottom:0.8rem;">${d.desc}</p>
+    <strong style="color:var(--rust); font-size:0.85rem;">From the letters:</strong>
+    ${excerptHTML}
+  `;
+  panel.style.display = 'block';
+}
+
+// ═══════════════════════════════════════════
+//  VIZ 2 — SEASONAL MOOD WHEEL
+// ═══════════════════════════════════════════
+
+const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const monthStats = [
+  { month: 1, name:'January',   letters:201, pos:3102, neg:1404, avgWords:276 },
+  { month: 2, name:'February',  letters:183, pos:2923, neg:1484, avgWords:291 },
+  { month: 3, name:'March',     letters:221, pos:3384, neg:1662, avgWords:289 },
+  { month: 4, name:'April',     letters:191, pos:3059, neg:1509, avgWords:304 },
+  { month: 5, name:'May',       letters:237, pos:3714, neg:1719, avgWords:296 },
+  { month: 6, name:'June',      letters:207, pos:3719, neg:1732, avgWords:334 },
+  { month: 7, name:'July',      letters:184, pos:3370, neg:1512, avgWords:334 },
+  { month: 8, name:'August',    letters:161, pos:3238, neg:1491, avgWords:360 },
+  { month: 9, name:'September', letters:163, pos:3326, neg:1475, avgWords:372 },
+  { month:10, name:'October',   letters:206, pos:3565, neg:1748, avgWords:317 },
+  { month:11, name:'November',  letters:223, pos:3612, neg:1748, avgWords:309 },
+  { month:12, name:'December',  letters:213, pos:3270, neg:1476, avgWords:277 },
+];
+
+function buildMoodWheel() {
+  const svgEl = document.getElementById('mood-svg');
+  const containerW = svgEl.parentElement.clientWidth - 24;
+  const S = Math.min(containerW, 540);
+  // Extra bottom space for the legend
+  const totalH = S + 60;
+  svgEl.setAttribute('width', S);
+  svgEl.setAttribute('height', totalH);
+  svgEl.innerHTML = '';
+
+  const mode = document.getElementById('mood-mode').value;
+  const cx = S / 2, cy = S / 2;
+  const innerR  = S * 0.15;
+  const outerRbase = S * 0.35;
+
+  const svg = d3.select(svgEl);
+  const g = svg.append('g').attr('transform', `translate(${cx},${cy})`);
+
+  const sliceAngle = (2 * Math.PI) / 12;
+
+  let values;
+  if (mode === 'sentiment') {
+    values = monthStats.map(d => {
+      const tot = d.pos + d.neg;
+      return tot > 0 ? (d.pos - d.neg) / tot : 0;
+    });
+  } else if (mode === 'volume') {
+    values = monthStats.map(d => d.letters);
+  } else {
+    values = monthStats.map(d => d.avgWords);
+  }
+
+  const vmin = d3.min(values), vmax = d3.max(values);
+  const outerRscale = d3.scaleLinear().domain([vmin, vmax]).range([outerRbase * 0.52, outerRbase]);
+
+  const colorInterp = mode === 'sentiment'
+    ? d3.interpolateRgb('#a04020','#2e7a40')
+    : mode === 'volume'
+    ? d3.interpolateRgb('#c4a882','#4a2a10')
+    : d3.interpolateRgb('#c4b8a0','#3d2810');
+
+  const sentScale = d3.scaleSequential().domain([vmin, vmax]).interpolator(colorInterp);
+
+  // Draw segments
+  monthStats.forEach((d, i) => {
+    // Start at top (12 o'clock = Jan), go clockwise
+    const startAngle = i * sliceAngle - Math.PI / 2;
+    const endAngle   = startAngle + sliceAngle;
+    const midAngle   = startAngle + sliceAngle / 2;
+    const r = outerRscale(values[i]);
+
+    const arc = d3.arc()
+      .innerRadius(innerR)
+      .outerRadius(r)
+      .startAngle(startAngle)
+      .endAngle(endAngle)
+      .padAngle(0.025)
+      .cornerRadius(3);
+
+    g.append('path')
+      .attr('d', arc())
+      .attr('fill', sentScale(values[i]))
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 0.5)
+      .on('mouseover', function(event) {
+        const score = ((d.pos - d.neg) / (d.pos + d.neg) * 100).toFixed(1);
+        showTip(
+          `<strong>${d.name}</strong><br/>` +
+          `${d.letters} letters · avg ${d.avgWords} words<br/>` +
+          `Positive: ${d.pos.toLocaleString()} · Negative: ${d.neg.toLocaleString()}<br/>` +
+          `Sentiment: ${+score > 0 ? '+' : ''}${score}%`,
+          event
+        );
+        d3.select(this).attr('opacity', 0.72);
+      })
+      .on('mousemove', moveTip)
+      .on('mouseout', function() { hideTip(); d3.select(this).attr('opacity', 1); });
+
+    // Month label outside arc
+    const labelR = outerRbase + 22;
+    g.append('text')
+      .attr('x', Math.cos(midAngle) * labelR)
+      .attr('y', Math.sin(midAngle) * labelR)
+      .attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('font-size', 11).attr('fill','var(--ink-light)')
+      .text(monthShort[i]);
+  });
+
+  // Center label — just "by month" note, no mode label (moved to legend)
+  g.append('text')
+    .attr('text-anchor','middle').attr('dominant-baseline','middle')
+    .attr('y', 0).attr('font-size', 11).attr('fill','var(--ink-light)').attr('font-style','italic')
+    .text('hover a month');
+
+  // ── LEGEND — positioned at the BOTTOM of the SVG ──────────
+  const legW = S * 0.55;
+  const legX = cx - legW / 2;
+  const legY = S + 14; // below the wheel
+
+  // Gradient bar
+  const gradId = 'moodgrad_' + mode;
+  const defs = svg.append('defs');
+  const grad = defs.append('linearGradient').attr('id', gradId)
+    .attr('x1','0%').attr('x2','100%');
+  const stops = 8;
+  for (let s = 0; s <= stops; s++) {
+    grad.append('stop')
+      .attr('offset', `${(s/stops)*100}%`)
+      .attr('stop-color', colorInterp(s/stops));
+  }
+
+  svg.append('rect')
+    .attr('x', legX).attr('y', legY)
+    .attr('width', legW).attr('height', 10)
+    .attr('rx', 4).attr('fill', `url(#${gradId})`);
+
+  const modeLabel = { sentiment:'Sentiment', volume:'Letter Volume', length:'Avg Words/Letter' };
+  const [minLabel, maxLabel] = mode === 'sentiment'
+    ? ['← more subdued', 'more positive →']
+    : mode === 'volume'
+    ? ['← fewer letters', 'more letters →']
+    : ['← shorter letters', 'longer letters →'];
+
+  svg.append('text')
+    .attr('x', legX).attr('y', legY + 24)
+    .attr('font-size', 9.5).attr('fill','var(--ink-light)')
+    .text(minLabel);
+
+  svg.append('text')
+    .attr('x', legX + legW).attr('y', legY + 24)
+    .attr('text-anchor','end').attr('font-size', 9.5).attr('fill','var(--ink-light)')
+    .text(maxLabel);
+
+  // Mode label centered above gradient
+  svg.append('text')
+    .attr('x', cx).attr('y', legY - 5)
+    .attr('text-anchor','middle').attr('font-size', 11)
+    .attr('fill','var(--rust)').attr('font-weight','bold')
+    .text(modeLabel[mode]);
+}
+
+document.getElementById('mood-mode').addEventListener('change', buildMoodWheel);
+
+// ═══════════════════════════════════════════
+//  NAV HIGHLIGHT
+// ═══════════════════════════════════════════
+const navLinks = document.querySelectorAll('nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => a.classList.remove('active'));
+      const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+
+// ═══════════════════════════════════════════
+//  INIT & RESIZE
+// ═══════════════════════════════════════════
+function init() {
+  buildChips();
+  buildInfluence();
+  buildMoodWheel();
+}
+
+window.addEventListener('resize', () => {
+  clearTimeout(window._rt);
+  window._rt = setTimeout(() => {
+    buildInfluence();
+    buildMoodWheel();
+  }, 160);
+});
+
+init();
+</script>
+</body>
+</html>
