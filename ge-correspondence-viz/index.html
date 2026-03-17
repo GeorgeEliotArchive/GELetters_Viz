@@ -5,404 +5,1463 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>George Eliot Archive: Gender-Based Correspondence</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* ── RESET & BASE ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Georgia', serif;
-      background: #FAF8F3;
-      color: #2C2C2C;
-      padding: 2rem 2.5rem;
-      max-width: 860px;
-      margin: 0 auto;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: #F5F0E6;
+      color: #3A2C1E;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
-    h1 {
-      font-size: 1.5rem;
-      color: #2C2C2C;
-      border-bottom: 2px solid #B8860B;
-      padding-bottom: 0.6rem;
-      margin-bottom: 1rem;
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 2rem 3rem;
     }
 
-    h2 {
-      font-size: 1rem;
-      color: #5a3e28;
-      margin: 1.8rem 0 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-size: 0.85rem;
-    }
-
-    .disclaimer {
-      background: #F0EAD6;
-      border-left: 4px solid #B8860B;
-      padding: 0.9rem 1.2rem;
-      margin: 1.2rem 0 1.6rem;
-      font-size: 0.8rem;
-      line-height: 1.65;
-      color: #4a3c2a;
-    }
-
-    .disclaimer strong {
-      display: block;
-      margin-bottom: 0.3rem;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .viz-card {
-      background: #ffffff;
-      border: 1px solid #e0d8c8;
-      border-radius: 6px;
-      padding: 1.5rem 1.5rem 1.2rem;
+    /* ── HEADER ─────────────────────────────────────────────────────── */
+    .header {
       margin-bottom: 1.6rem;
     }
 
-    .viz-title {
-      font-size: 0.92rem;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 1.1rem;
-      color: #3a2c1e;
+    .header h1 {
+      font-size: 1.45rem;
+      color: #3A2C1E;
+      border-bottom: 2.5px solid #B8860B;
+      padding-bottom: 0.55rem;
+      margin-bottom: 0.6rem;
       letter-spacing: 0.01em;
     }
 
+    .header .subtitle {
+      font-size: 0.82rem;
+      color: #7A6A5A;
+      font-style: italic;
+    }
+
+    /* ── STAT BOXES ─────────────────────────────────────────────────── */
+    .stat-row {
+      display: flex;
+      gap: 0.75rem;
+      margin: 1.2rem 0 1.6rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      flex: 1;
+      min-width: 120px;
+      background: #FFFFFF;
+      border: 1px solid #E0D8C8;
+      border-radius: 6px;
+      padding: 0.7rem 0.6rem;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .stat-num {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #3A2C1E;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      color: #7A6A5A;
+      margin-top: 0.15rem;
+      line-height: 1.35;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── TOGGLE BUTTONS ─────────────────────────────────────────────── */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 1.4rem;
+      align-items: center;
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .toggle-btn {
+      font-family: 'Georgia', serif;
+      font-size: 0.78rem;
+      padding: 0.4rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .toggle-btn.brown  { background: #7B5B3A; color: #FFF; }
+    .toggle-btn.green  { background: #6B8E3C; color: #FFF; }
+    .toggle-btn.coral  { background: #C04030; color: #FFF; }
+    .toggle-btn.inactive {
+      background: #E8E0D0;
+      color: #7A6A5A;
+    }
+
+    .toggle-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      font-family: 'Georgia', serif;
+      font-size: 0.72rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .filter-chip.ff { border-color: #C2746F; background: #C2746F; color: #FFF; }
+    .filter-chip.fm { border-color: #D4A08A; background: #D4A08A; color: #FFF; }
+    .filter-chip.mf { border-color: #8AAEC7; background: #8AAEC7; color: #FFF; }
+    .filter-chip.mm { border-color: #5B7FA6; background: #5B7FA6; color: #FFF; }
+
+    .filter-chip.off {
+      background: transparent !important;
+    }
+    .filter-chip.ff.off { color: #C2746F; }
+    .filter-chip.fm.off { color: #D4A08A; }
+    .filter-chip.mf.off { color: #8AAEC7; }
+    .filter-chip.mm.off { color: #5B7FA6; }
+
+    /* ── VIZ CARDS ──────────────────────────────────────────────────── */
+    .viz-card {
+      background: #FFFFFF;
+      border: 1px solid #E0D8C8;
+      border-radius: 8px;
+      padding: 1.4rem 1.4rem 1.1rem;
+      margin-bottom: 1.4rem;
+      transition: box-shadow 0.2s;
+    }
+
+    .viz-card:hover {
+      box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+    }
+
+    .viz-title {
+      font-size: 0.88rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 0.9rem;
+      color: #3A2C1E;
+      letter-spacing: 0.01em;
+    }
+
+    .viz-subtitle {
+      font-size: 0.72rem;
+      text-align: center;
+      color: #9A8A7A;
+      margin-top: 0.6rem;
+    }
+
+    /* ── CHORD SVG ──────────────────────────────────────────────────── */
     #chord-svg {
       display: block;
       margin: 0 auto;
     }
 
+    /* ── LEGEND ─────────────────────────────────────────────────────── */
     .legend {
       display: flex;
       justify-content: center;
-      gap: 1.8rem;
-      margin-top: 0.9rem;
+      gap: 1.4rem;
+      margin-top: 0.8rem;
       flex-wrap: wrap;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
-      font-size: 0.8rem;
-      color: #3a3030;
+      gap: 0.4rem;
+      font-size: 0.76rem;
+      color: #5A4A3A;
     }
 
     .legend-swatch {
-      width: 13px;
-      height: 13px;
+      width: 12px;
+      height: 12px;
       border-radius: 2px;
       flex-shrink: 0;
     }
 
+    /* ── TOOLTIP ─────────────────────────────────────────────────────── */
     #tooltip {
       position: fixed;
-      background: rgba(30, 20, 10, 0.91);
-      color: #f5f0e8;
-      padding: 7px 13px;
-      border-radius: 4px;
-      font-size: 0.78rem;
+      background: rgba(30, 20, 10, 0.92);
+      color: #F5F0E8;
+      padding: 8px 14px;
+      border-radius: 5px;
+      font-size: 0.76rem;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.12s;
+      transition: opacity 0.15s;
       font-family: Georgia, serif;
       line-height: 1.6;
-      z-index: 100;
-      max-width: 240px;
+      z-index: 1000;
+      max-width: 280px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
-    .explanation p {
-      font-size: 0.875rem;
-      line-height: 1.8;
-      color: #3a3030;
-      margin-bottom: 0.9rem;
+    #tooltip strong { color: #F0D6A0; }
+
+    /* ── VIEW SECTIONS ──────────────────────────────────────────────── */
+    .view-section {
+      display: none;
     }
 
-    .stat-row {
+    .view-section.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── OVERVIEW LAYOUT ────────────────────────────────────────────── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.4rem;
+    }
+
+    @media (max-width: 700px) {
+      .overview-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── TIMELINE ────────────────────────────────────────────────────── */
+    .timeline-chart {
+      width: 100%;
+      overflow: visible;
+    }
+
+    .brush-hint {
+      font-size: 0.72rem;
+      color: #9A8A7A;
+      text-align: center;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .life-event-line {
+      stroke: #B8860B;
+      stroke-width: 1;
+      stroke-dasharray: 4 3;
+      opacity: 0.6;
+    }
+
+    .life-event-label {
+      font-size: 9px;
+      fill: #7A6A5A;
+      font-style: italic;
+    }
+
+    /* ── CORRESPONDENTS TABLE ────────────────────────────────────────── */
+    .corr-table-wrap {
+      overflow-x: auto;
+    }
+
+    .corr-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .corr-table th {
+      background: #F0EAD6;
+      color: #5A3E28;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.5rem 0.7rem;
+      text-align: left;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 2px solid #D4C8A8;
+      white-space: nowrap;
+    }
+
+    .corr-table th:hover {
+      background: #E8DFC8;
+    }
+
+    .corr-table th .sort-arrow {
+      font-size: 0.65rem;
+      margin-left: 0.3rem;
+      opacity: 0.4;
+    }
+
+    .corr-table th .sort-arrow.active { opacity: 1; }
+
+    .corr-table td {
+      padding: 0.45rem 0.7rem;
+      border-bottom: 1px solid #EDE6D6;
+      transition: background 0.15s;
+    }
+
+    .corr-table tr:hover td {
+      background: #FAF6EE;
+    }
+
+    .corr-table tr.selected td {
+      background: #F0E8D4;
+    }
+
+    .gender-badge {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 18px;
+      font-size: 0.65rem;
+      font-weight: bold;
+      color: #FFF;
+    }
+
+    .gender-badge.f { background: #C2746F; }
+    .gender-badge.m { background: #5B7FA6; }
+    .gender-badge.u { background: #AAA; }
+
+    .corr-bar {
+      height: 8px;
+      border-radius: 4px;
+      display: inline-block;
+      transition: width 0.4s ease;
+    }
+
+    /* ── INFO CARDS ──────────────────────────────────────────────────── */
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1.4rem;
+    }
+
+    @media (max-width: 700px) {
+      .info-cards { grid-template-columns: 1fr; }
+    }
+
+    .info-card {
+      background: #FDFBF5;
+      border: 1px solid #E0D8C8;
+      border-radius: 6px;
+      padding: 1rem 1.1rem;
+      border-left-width: 4px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .info-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .info-card.orange { border-left-color: #C2746F; }
+    .info-card.purple { border-left-color: #7B68AE; }
+    .info-card.gray   { border-left-color: #9A8A7A; }
+
+    .info-card h3 {
+      font-size: 0.82rem;
+      color: #5A3E28;
+      margin-bottom: 0.4rem;
+    }
+
+    .info-card .card-stat {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #3A2C1E;
+      margin-bottom: 0.3rem;
+    }
+
+    .info-card p {
+      font-size: 0.74rem;
+      color: #7A6A5A;
+      line-height: 1.5;
+    }
+
+    .info-card .tag {
+      display: inline-block;
+      background: #F0EAD6;
+      color: #5A3E28;
+      font-size: 0.68rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      margin: 0.2rem 0.2rem 0 0;
+    }
+
+    /* ── DISCLAIMER ─────────────────────────────────────────────────── */
+    .disclaimer {
+      background: #F0EAD6;
+      border-left: 4px solid #B8860B;
+      padding: 0.85rem 1.1rem;
+      margin-top: 1.6rem;
+      font-size: 0.76rem;
+      line-height: 1.6;
+      color: #4A3C2A;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .disclaimer strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── DECADE SELECTION ────────────────────────────────────────────── */
+    .decade-label {
+      cursor: pointer;
+      transition: fill 0.2s;
+    }
+    .decade-label:hover {
+      fill: #B8860B !important;
+    }
+    .decade-label.selected {
+      fill: #B8860B !important;
+      font-weight: bold;
+    }
+
+    /* ── LOADING ─────────────────────────────────────────────────────── */
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #7A6A5A;
+      font-size: 0.9rem;
+    }
+
+    .loading .spinner {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border: 3px solid #E0D8C8;
+      border-top-color: #B8860B;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 0.8rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── CORRESPONDENT DETAIL ────────────────────────────────────────── */
+    .corr-detail {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #FDFBF5;
+      border: 1px solid #E0D8C8;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .corr-detail.visible { display: block; animation: fadeIn 0.3s; }
+
+    .corr-detail h3 {
+      font-size: 0.88rem;
+      margin-bottom: 0.5rem;
+      color: #5A3E28;
+    }
+
+    .corr-detail .detail-stats {
       display: flex;
       gap: 1rem;
-      margin: 1rem 0;
+      margin-bottom: 0.5rem;
       flex-wrap: wrap;
     }
 
-    .stat-box {
-      flex: 1;
-      min-width: 140px;
-      background: #f7f2ea;
-      border: 1px solid #e0d4be;
-      border-radius: 4px;
-      padding: 0.65rem 0.8rem;
-      text-align: center;
+    .corr-detail .detail-stat {
+      font-size: 0.78rem;
+      color: #5A4A3A;
     }
 
-    .stat-box .stat-num {
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: #2C2C2C;
+    .corr-detail .detail-stat strong {
+      color: #3A2C1E;
     }
 
-    .stat-box .stat-label {
-      font-size: 0.72rem;
-      color: #7a6a5a;
-      margin-top: 0.15rem;
-      line-height: 1.4;
+    /* ── RESET BUTTON ────────────────────────────────────────────────── */
+    .reset-btn {
+      font-family: 'Georgia', serif;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      background: transparent;
+      border: 1px solid #C8B898;
+      border-radius: 3px;
+      color: #7A6A5A;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 0.5rem;
     }
 
-    canvas { max-height: 300px; }
+    .reset-btn:hover {
+      background: #F0EAD6;
+      color: #5A3E28;
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-<h1>Gender-Based Correspondence in the George Eliot Archive</h1>
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Gender-Based Correspondence in the George Eliot Archive</h1>
+    <div class="subtitle">Interactive exploration of 3,987 letters spanning 1836–1881</div>
+  </div>
 
-<div class="disclaimer">
-  <strong>Disclaimer</strong>
-  These analytics were generated through Machine Learning, not the use of Generative AI. IBM defines Machine Learning as "the subset of artificial intelligence (AI) focused on algorithms that can 'learn' the patterns of training data and, subsequently, make accurate inferences about new data. This pattern recognition ability enables machine learning models to make decisions or predictions without explicit, hard-coded instructions." The results visualized here have been verified through several revisions and statistically significant measures.
-</div>
+  <!-- LOADING STATE -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <div>Loading correspondence data...</div>
+  </div>
 
-<!-- Summary stats -->
-<div class="stat-row">
-  <div class="stat-box">
-    <div class="stat-num">3,987</div>
-    <div class="stat-label">Total Letters<br>in Archive</div>
-  </div>
-  <div class="stat-box">
-    <div class="stat-num">62%</div>
-    <div class="stat-label">Letters Written<br>by Female Senders</div>
-  </div>
-  <div class="stat-box">
-    <div class="stat-num">34%</div>
-    <div class="stat-label">Female → Female<br>Correspondence</div>
-  </div>
-  <div class="stat-box">
-    <div class="stat-num">1836–1881</div>
-    <div class="stat-label">Date Range<br>Covered</div>
-  </div>
-</div>
+  <!-- MAIN CONTENT (hidden until loaded) -->
+  <div id="main-content" class="hidden">
 
-<!-- Chord Diagram -->
-<div class="viz-card">
-  <div class="viz-title">Gender Correspondence Flow — 3,639 Letters with Identified Genders</div>
-  <svg id="chord-svg"></svg>
-  <div class="legend">
-    <div class="legend-item">
-      <div class="legend-swatch" style="background:#C2746F"></div> Female Sender / Recipient
+    <!-- STAT BOXES -->
+    <div class="stat-row" id="stat-row"></div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="toggle-group">
+        <button class="toggle-btn brown" data-view="overview">Overview</button>
+        <button class="toggle-btn green inactive" data-view="timeline">Timeline</button>
+        <button class="toggle-btn coral inactive" data-view="correspondents">Correspondents</button>
+      </div>
+      <div class="filter-group">
+        <span class="filter-chip ff" data-pair="FF">F → F</span>
+        <span class="filter-chip fm" data-pair="FM">F → M</span>
+        <span class="filter-chip mf" data-pair="MF">M → F</span>
+        <span class="filter-chip mm" data-pair="MM">M → M</span>
+      </div>
+      <button class="reset-btn hidden" id="reset-btn">Reset filters</button>
     </div>
-    <div class="legend-item">
-      <div class="legend-swatch" style="background:#5B7FA6"></div> Male Sender / Recipient
-    </div>
-  </div>
-  <p style="text-align:center; font-size:0.72rem; color:#9a8a7a; margin-top:0.7rem;">
-    Hover over arcs or ribbons to explore correspondence flows.
-  </p>
-</div>
 
-<!-- Decade Bar Chart -->
-<div class="viz-card">
-  <div class="viz-title">Correspondence by Decade &amp; Gender Pairing (Letters with Identified Genders)</div>
-  <canvas id="decade-chart"></canvas>
+    <!-- ═══════════════ VIEW: OVERVIEW ═══════════════ -->
+    <div class="view-section active" id="view-overview">
+      <div class="overview-grid">
+        <div class="viz-card">
+          <div class="viz-title">Gender Correspondence Flow</div>
+          <svg id="chord-svg"></svg>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-swatch" style="background:#C2746F"></div> Female
+            </div>
+            <div class="legend-item">
+              <div class="legend-swatch" style="background:#5B7FA6"></div> Male
+            </div>
+          </div>
+          <div class="viz-subtitle">Hover arcs and ribbons to explore flows</div>
+        </div>
+
+        <div class="viz-card">
+          <div class="viz-title">Letters by Decade &amp; Gender Pairing</div>
+          <svg id="decade-svg"></svg>
+          <div class="viz-subtitle" id="decade-hint">Click a decade bar to filter the chord diagram</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ VIEW: TIMELINE ═══════════════ -->
+    <div class="view-section" id="view-timeline">
+      <div class="viz-card">
+        <div class="viz-title">Yearly Correspondence Volume (1836–1881)</div>
+        <svg id="timeline-svg" class="timeline-chart"></svg>
+        <div class="brush-hint">Drag on the chart to select a year range</div>
+        <div class="legend" style="margin-top:0.6rem;">
+          <div class="legend-item"><div class="legend-swatch" style="background:#C2746F"></div> F → F</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#D4A08A"></div> F → M</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#8AAEC7"></div> M → F</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#5B7FA6"></div> M → M</div>
+        </div>
+      </div>
+
+      <!-- Timeline summary chord -->
+      <div class="overview-grid">
+        <div class="viz-card">
+          <div class="viz-title" id="timeline-chord-title">Selected Period — All Years</div>
+          <svg id="timeline-chord-svg"></svg>
+        </div>
+        <div class="viz-card">
+          <div class="viz-title">Selected Period Statistics</div>
+          <div id="timeline-stats" style="padding:0.5rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ VIEW: CORRESPONDENTS ═══════════════ -->
+    <div class="view-section" id="view-correspondents">
+      <div class="viz-card">
+        <div class="viz-title">Top Correspondents</div>
+        <div class="corr-table-wrap">
+          <table class="corr-table" id="corr-table">
+            <thead>
+              <tr>
+                <th data-sort="name">Name <span class="sort-arrow">▲▼</span></th>
+                <th data-sort="gender">Gender <span class="sort-arrow">▲▼</span></th>
+                <th data-sort="sent">Sent <span class="sort-arrow">▲▼</span></th>
+                <th data-sort="received">Received <span class="sort-arrow">▲▼</span></th>
+                <th data-sort="total">Total <span class="sort-arrow active">▼</span></th>
+                <th>Activity</th>
+              </tr>
+            </thead>
+            <tbody id="corr-tbody"></tbody>
+          </table>
+        </div>
+        <div class="corr-detail" id="corr-detail">
+          <h3 id="corr-detail-name"></h3>
+          <div class="detail-stats" id="corr-detail-stats"></div>
+          <svg id="corr-detail-chart"></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ INFO CARDS ═══════════════ -->
+    <div class="info-cards" id="info-cards"></div>
+
+  </div><!-- /main-content -->
 </div>
 
 <div id="tooltip"></div>
 
 <script>
-// ── DATA ─────────────────────────────────────────────────────────────────────
-// Genders: index 0 = Female, index 1 = Male
-// matrix[sender][recipient]
-const matrix = [
-  [1357, 923],   // Female → [Female, Male]
-  [376,  983]    // Male   → [Female, Male]
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────────────
+const COLORS = {
+  FF: '#C2746F',
+  FM: '#D4A08A',
+  MF: '#8AAEC7',
+  MM: '#5B7FA6',
+  female: '#C2746F',
+  male: '#5B7FA6',
+};
+
+const PAIR_LABELS = { FF: 'Female → Female', FM: 'Female → Male', MF: 'Male → Female', MM: 'Male → Male' };
+const GENDER_LABELS = ['Female', 'Male'];
+
+const LIFE_EVENTS = [
+  { year: 1846, label: 'Translates Strauss' },
+  { year: 1856, label: 'Scenes of Clerical Life' },
+  { year: 1859, label: 'Adam Bede' },
+  { year: 1860, label: 'Mill on the Floss' },
+  { year: 1861, label: 'Silas Marner' },
+  { year: 1866, label: 'Felix Holt' },
+  { year: 1871, label: 'Middlemarch begins' },
+  { year: 1876, label: 'Daniel Deronda' },
+  { year: 1878, label: 'G.H. Lewes dies' },
 ];
 
-const genderLabels = ['Female', 'Male'];
+// ─────────────────────────────────────────────────────────────────────────────
+// GLOBALS
+// ─────────────────────────────────────────────────────────────────────────────
+let DATA = null;
+let activeView = 'overview';
+let activePairs = { FF: true, FM: true, MF: true, MM: true };
+let selectedDecade = null;
+let timelineRange = null;
+const tip = d3.select('#tooltip');
 
-const decadeLabels = ['1830s', '1840s', '1850s', '1860s', '1870s', '1880s'];
-const decadeData = {
-  'F → F': [14,  210, 298, 344, 417,  74],
-  'F → M': [ 0,   23, 271, 244, 343,  42],
-  'M → F': [ 0,    2,  74, 109, 174,  18],
-  'M → M': [ 0,    0, 285, 251, 442,   5]
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// LOAD DATA
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const resp = await fetch('data/letters.json');
+    if (!resp.ok) throw new Error('Failed to load data');
+    DATA = await resp.json();
+    init();
+  } catch (e) {
+    document.getElementById('loading').innerHTML =
+      `<div style="color:#C04030;">Error loading data: ${e.message}<br>
+       <span style="font-size:0.75rem;color:#7A6A5A;">Ensure data/letters.json exists. Run scripts/process_data.py first.</span></div>`;
+  }
+}
 
-const COLORS = {
-  female:    '#C2746F',
-  male:      '#5B7FA6',
-  femFem:    '#C2746F',
-  femMal:    '#E0A099',
-  malFem:    '#8AAEC7',
-  malMal:    '#5B7FA6'
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+function init() {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('main-content').classList.remove('hidden');
 
-// ── CHORD DIAGRAM ─────────────────────────────────────────────────────────────
-(function () {
-  const W = 480, H = 480;
-  const outerR = 170, innerR = 148;
+  buildStatBoxes();
+  buildInfoCards();
+  setupControls();
+  drawOverviewChord();
+  drawDecadeChart();
+  drawTimeline();
+  buildCorrespondentsTable();
 
-  const svg = d3.select('#chord-svg')
-    .attr('width', W)
-    .attr('height', H)
-    .append('g')
-    .attr('transform', `translate(${W / 2},${H / 2})`);
+  // Check URL hash
+  const hash = window.location.hash.replace('#', '');
+  if (['overview', 'timeline', 'correspondents'].includes(hash)) {
+    switchView(hash);
+  }
+}
 
-  const chord = d3.chord().padAngle(0.05).sortSubgroups(d3.descending);
+// ─────────────────────────────────────────────────────────────────────────────
+// STAT BOXES
+// ─────────────────────────────────────────────────────────────────────────────
+function buildStatBoxes() {
+  const m = DATA.metadata;
+  const stats = [
+    { num: m.totalLetters.toLocaleString(), label: 'Total Letters\nin Archive' },
+    { num: m.genderedLetters.toLocaleString(), label: 'With Identified\nGender Pairs' },
+    { num: '62%', label: 'Letters by\nFemale Senders' },
+    { num: `${m.dateRange[0]}–${m.dateRange[1]}`, label: 'Date Range\nCovered' },
+  ];
+  const row = document.getElementById('stat-row');
+  stats.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'stat-box';
+    div.innerHTML = `<div class="stat-num">${s.num}</div><div class="stat-label">${s.label.replace('\n', '<br>')}</div>`;
+    row.appendChild(div);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INFO CARDS
+// ─────────────────────────────────────────────────────────────────────────────
+function buildInfoCards() {
+  const cards = [
+    {
+      cls: 'orange',
+      title: 'Female-Dominant Network',
+      stat: '1,357 letters',
+      text: 'Female-to-female correspondence is the largest single category (~34%), reflecting both George Eliot\'s prolific personal writing and women\'s broader role as primary custodians of social correspondence.',
+      tags: ['34% of archive', 'Highest category', 'Victorian patterns'],
+    },
+    {
+      cls: 'purple',
+      title: 'Cross-Gender Asymmetry',
+      stat: '923 vs 376',
+      text: 'Women initiated cross-gender correspondence far more frequently (F→M: 923) than men did (M→F: 376), consistent with findings that women more frequently sustained correspondence networks.',
+      tags: ['2.5:1 ratio', 'Women-initiated', 'Network sustaining'],
+    },
+    {
+      cls: 'gray',
+      title: 'Peak Correspondence',
+      stat: '1860s–1870s',
+      text: 'A significant surge in the 1860s and 1870s coincides with Eliot\'s peak literary career following The Mill on the Floss (1860), Middlemarch (1871–72), and Daniel Deronda (1876).',
+      tags: ['Literary peak', 'Career growth', '2 decades'],
+    },
+  ];
+  const container = document.getElementById('info-cards');
+  cards.forEach(c => {
+    const div = document.createElement('div');
+    div.className = `info-card ${c.cls}`;
+    div.innerHTML = `
+      <h3>${c.title}</h3>
+      <div class="card-stat">${c.stat}</div>
+      <p>${c.text}</p>
+      <div>${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTROLS
+// ─────────────────────────────────────────────────────────────────────────────
+function setupControls() {
+  // View toggles
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  // Gender pair filters
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const pair = chip.dataset.pair;
+      activePairs[pair] = !activePairs[pair];
+      chip.classList.toggle('off', !activePairs[pair]);
+      onFilterChange();
+    });
+  });
+
+  // Reset button
+  document.getElementById('reset-btn').addEventListener('click', resetFilters);
+}
+
+function switchView(view) {
+  activeView = view;
+  window.location.hash = view;
+
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    const isActive = btn.dataset.view === view;
+    btn.classList.toggle('inactive', !isActive);
+    if (btn.dataset.view === 'overview') btn.className = `toggle-btn ${isActive ? 'brown' : 'inactive'}`;
+    if (btn.dataset.view === 'timeline') btn.className = `toggle-btn ${isActive ? 'green' : 'inactive'}`;
+    if (btn.dataset.view === 'correspondents') btn.className = `toggle-btn ${isActive ? 'coral' : 'inactive'}`;
+  });
+
+  document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`view-${view}`).classList.add('active');
+
+  if (view === 'timeline') {
+    updateTimelineChord();
+  }
+}
+
+function resetFilters() {
+  selectedDecade = null;
+  timelineRange = null;
+  Object.keys(activePairs).forEach(k => activePairs[k] = true);
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('off'));
+  document.getElementById('reset-btn').classList.add('hidden');
+  onFilterChange();
+}
+
+function onFilterChange() {
+  const anyOff = Object.values(activePairs).some(v => !v);
+  document.getElementById('reset-btn').classList.toggle('hidden', !anyOff && !selectedDecade);
+
+  drawOverviewChord();
+  drawDecadeChart();
+
+  if (activeView === 'timeline') {
+    drawTimeline();
+    updateTimelineChord();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITY: get filtered matrix
+// ─────────────────────────────────────────────────────────────────────────────
+function getFilteredMatrix(decadeFilter, yearRange) {
+  // If filtering by decade or year range, compute from letters
+  if (decadeFilter || yearRange) {
+    const m = [[0, 0], [0, 0]];
+    const gi = { F: 0, M: 1 };
+    DATA.letters.forEach(l => {
+      if (!activePairs[l.sg + l.rg]) return;
+      if (decadeFilter) {
+        const d = Math.floor(l.y / 10) * 10;
+        if (`${d}s` !== decadeFilter) return;
+      }
+      if (yearRange) {
+        if (l.y < yearRange[0] || l.y > yearRange[1]) return;
+      }
+      m[gi[l.sg]][gi[l.rg]]++;
+    });
+    return m;
+  }
+
+  // Default: use the pre-computed matrix, applying pair filters
+  const m = DATA.matrix.map(r => [...r]);
+  if (!activePairs.FF) m[0][0] = 0;
+  if (!activePairs.FM) m[0][1] = 0;
+  if (!activePairs.MF) m[1][0] = 0;
+  if (!activePairs.MM) m[1][1] = 0;
+  return m;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOOLTIP HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function showTip(html, ev) {
+  tip.style('opacity', 1).html(html);
+  moveTip(ev);
+}
+
+function moveTip(ev) {
+  let x = ev.clientX + 16, y = ev.clientY - 32;
+  const tw = 280;
+  if (x + tw > window.innerWidth) x = ev.clientX - tw - 10;
+  if (y < 10) y = ev.clientY + 20;
+  tip.style('left', x + 'px').style('top', y + 'px');
+}
+
+function hideTip() { tip.style('opacity', 0); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHORD DIAGRAM (reusable)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawChord(svgSelector, matrix, size) {
+  const W = size, H = size;
+  const outerR = size * 0.38, innerR = size * 0.33;
+
+  const svg = d3.select(svgSelector);
+  svg.selectAll('*').remove();
+  svg.attr('width', W).attr('height', H);
+
+  // Handle empty matrix
+  const total = matrix.flat().reduce((a, b) => a + b, 0);
+  if (total === 0) {
+    svg.append('text')
+      .attr('x', W / 2).attr('y', H / 2)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '13px').style('fill', '#9A8A7A')
+      .text('No data for this selection');
+    return;
+  }
+
+  const g = svg.append('g').attr('transform', `translate(${W / 2},${H / 2})`);
+
+  const chord = d3.chord().padAngle(0.06).sortSubgroups(d3.descending);
   const chords = chord(matrix);
-
-  const arc     = d3.arc().innerRadius(innerR).outerRadius(outerR);
-  const ribbon  = d3.ribbon().radius(innerR);
+  const arc = d3.arc().innerRadius(innerR).outerRadius(outerR);
+  const ribbon = d3.ribbon().radius(innerR);
 
   const arcFill = [COLORS.female, COLORS.male];
+  const chordFill = { '0-0': COLORS.FF, '0-1': COLORS.FM, '1-0': COLORS.MF, '1-1': COLORS.MM };
 
-  const chordFill = {
-    '0-0': COLORS.femFem,
-    '0-1': COLORS.femMal,
-    '1-0': COLORS.malFem,
-    '1-1': COLORS.malMal
-  };
-
-  const tip = d3.select('#tooltip');
-
-  // ── outer arcs
-  const group = svg.append('g').selectAll('g').data(chords.groups).join('g');
+  // Arcs
+  const group = g.append('g').selectAll('g').data(chords.groups).join('g');
 
   group.append('path')
     .attr('fill', d => arcFill[d.index])
-    .attr('stroke', d => d3.rgb(arcFill[d.index]).darker(0.5))
+    .attr('stroke', d => d3.rgb(arcFill[d.index]).darker(0.4))
     .attr('d', arc)
     .style('cursor', 'pointer')
-    .on('mouseover', function (event, d) {
-      const sent     = matrix[d.index].reduce((a, b) => a + b, 0);
+    .on('mouseover', function (ev, d) {
+      const sent = matrix[d.index].reduce((a, b) => a + b, 0);
       const received = matrix.reduce((s, row) => s + row[d.index], 0);
-      tip.style('opacity', 1)
-         .html(`<strong>${genderLabels[d.index]}</strong><br>
-                Letters sent: <strong>${sent.toLocaleString()}</strong><br>
-                Letters received: <strong>${received.toLocaleString()}</strong>`);
-      d3.selectAll('.chord-ribbon').style('opacity',
-        dd => (dd.source.index === d.index || dd.target.index === d.index) ? 0.85 : 0.1);
+      showTip(`<strong>${GENDER_LABELS[d.index]}</strong><br>
+        Sent: <strong>${sent.toLocaleString()}</strong><br>
+        Received: <strong>${received.toLocaleString()}</strong>`, ev);
+      g.selectAll('.chord-ribbon').transition().duration(200)
+        .style('opacity', dd => (dd.source.index === d.index || dd.target.index === d.index) ? 0.85 : 0.08);
     })
-    .on('mousemove', ev => tip.style('left', (ev.clientX + 16) + 'px').style('top', (ev.clientY - 32) + 'px'))
-    .on('mouseout',  () => { tip.style('opacity', 0); d3.selectAll('.chord-ribbon').style('opacity', 0.7); });
+    .on('mousemove', moveTip)
+    .on('mouseout', function () {
+      hideTip();
+      g.selectAll('.chord-ribbon').transition().duration(200).style('opacity', 0.72);
+    });
 
-  // arc labels
+  // Arc labels
   group.append('text')
     .each(d => { d.angle = (d.startAngle + d.endAngle) / 2; })
     .attr('dy', '0.35em')
-    .attr('transform', d => `
-      rotate(${d.angle * 180 / Math.PI - 90})
-      translate(${outerR + 20})
-      ${d.angle > Math.PI ? 'rotate(180)' : ''}
-    `)
+    .attr('transform', d => `rotate(${d.angle * 180 / Math.PI - 90}) translate(${outerR + 16}) ${d.angle > Math.PI ? 'rotate(180)' : ''}`)
     .attr('text-anchor', d => d.angle > Math.PI ? 'end' : 'start')
     .style('font-family', 'Georgia, serif')
-    .style('font-size', '13px')
-    .style('fill', '#2C2C2C')
-    .text(d => genderLabels[d.index]);
+    .style('font-size', size < 350 ? '11px' : '13px')
+    .style('fill', '#3A2C1E')
+    .text(d => GENDER_LABELS[d.index]);
 
-  // tick marks
+  // Tick marks
   group.each(function (d) {
-    const total = matrix[d.index].reduce((a, b) => a + b, 0);
-    const step  = 200;
-    const ticks = d3.range(0, total, step).map(v => ({
+    const t = matrix[d.index].reduce((a, b) => a + b, 0);
+    if (t === 0) return;
+    const step = t > 1000 ? 500 : t > 200 ? 200 : 100;
+    const ticks = d3.range(0, t, step).map(v => ({
       value: v,
-      angle: d.startAngle + (v / total) * (d.endAngle - d.startAngle)
+      angle: d.startAngle + (v / t) * (d.endAngle - d.startAngle)
     }));
 
-    d3.select(this).append('g').attr('fill', '#aaa')
-      .selectAll('text')
-      .data(ticks)
-      .join('text')
-      .attr('transform', t => `
-        rotate(${t.angle * 180 / Math.PI - 90})
-        translate(${outerR + 4},0)
-        ${t.angle > Math.PI ? 'rotate(180)' : ''}
-      `)
+    d3.select(this).append('g').attr('fill', '#B0A090')
+      .selectAll('text').data(ticks).join('text')
+      .attr('transform', t => `rotate(${t.angle * 180 / Math.PI - 90}) translate(${outerR + 3},0) ${t.angle > Math.PI ? 'rotate(180)' : ''}`)
       .attr('text-anchor', t => t.angle > Math.PI ? 'end' : null)
-      .style('font-size', '8px')
+      .style('font-size', '7px')
       .text(t => t.value ? t.value.toLocaleString() : '');
   });
 
-  // ── ribbons
-  svg.append('g')
-    .selectAll('path')
+  // Ribbons
+  g.append('g').selectAll('path')
     .data(chords)
     .join('path')
-      .attr('class', 'chord-ribbon')
-      .attr('d', ribbon)
-      .attr('fill', d => chordFill[`${d.source.index}-${d.target.index}`])
-      .attr('fill-opacity', 0.7)
-      .attr('stroke', d => d3.rgb(chordFill[`${d.source.index}-${d.target.index}`]).darker(0.4))
-      .attr('stroke-width', 0.5)
-      .style('cursor', 'pointer')
-      .on('mouseover', function (event, d) {
-        const si = d.source.index, ti = d.target.index;
-        const a  = matrix[si][ti];
-        const b  = matrix[ti][si];
-        const isSelf = si === ti;
-        tip.style('opacity', 1).html(
-          isSelf
-            ? `<strong>${genderLabels[si]} → ${genderLabels[ti]}</strong><br>${a.toLocaleString()} letters`
-            : `<strong>${genderLabels[si]} → ${genderLabels[ti]}</strong>: ${a.toLocaleString()} letters<br>
-               <strong>${genderLabels[ti]} → ${genderLabels[si]}</strong>: ${b.toLocaleString()} letters`
-        );
-        d3.selectAll('.chord-ribbon').style('opacity',
-          dd => (dd.source.index === si && dd.target.index === ti) ? 0.9 : 0.1);
-      })
-      .on('mousemove', ev => tip.style('left', (ev.clientX + 16) + 'px').style('top', (ev.clientY - 32) + 'px'))
-      .on('mouseout',  () => { tip.style('opacity', 0); d3.selectAll('.chord-ribbon').style('opacity', 0.7); });
-}());
+    .attr('class', 'chord-ribbon')
+    .attr('d', ribbon)
+    .attr('fill', d => chordFill[`${d.source.index}-${d.target.index}`])
+    .attr('fill-opacity', 0)
+    .attr('stroke', d => d3.rgb(chordFill[`${d.source.index}-${d.target.index}`]).darker(0.3))
+    .attr('stroke-width', 0.5)
+    .style('cursor', 'pointer')
+    .on('mouseover', function (ev, d) {
+      const si = d.source.index, ti = d.target.index;
+      const a = matrix[si][ti], b = matrix[ti][si];
+      const html = si === ti
+        ? `<strong>${GENDER_LABELS[si]} → ${GENDER_LABELS[ti]}</strong><br>${a.toLocaleString()} letters`
+        : `<strong>${GENDER_LABELS[si]} → ${GENDER_LABELS[ti]}</strong>: ${a.toLocaleString()}<br>
+           <strong>${GENDER_LABELS[ti]} → ${GENDER_LABELS[si]}</strong>: ${b.toLocaleString()}`;
+      showTip(html, ev);
+      g.selectAll('.chord-ribbon').transition().duration(200)
+        .style('opacity', dd => (dd.source.index === si && dd.target.index === ti) ? 0.9 : 0.08);
+    })
+    .on('mousemove', moveTip)
+    .on('mouseout', function () {
+      hideTip();
+      g.selectAll('.chord-ribbon').transition().duration(200).style('opacity', 0.72);
+    })
+    .transition().duration(800).attr('fill-opacity', 0.72);
+}
 
-// ── DECADE STACKED BAR CHART ───────────────────────────────────────────────
-(function () {
-  const ctx = document.getElementById('decade-chart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: decadeLabels,
-      datasets: [
-        { label: 'Female → Female', data: decadeData['F → F'], backgroundColor: COLORS.femFem },
-        { label: 'Female → Male',   data: decadeData['F → M'], backgroundColor: COLORS.femMal },
-        { label: 'Male → Female',   data: decadeData['M → F'], backgroundColor: COLORS.malFem },
-        { label: 'Male → Male',     data: decadeData['M → M'], backgroundColor: COLORS.malMal }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          labels: { font: { family: 'Georgia, serif', size: 11 }, color: '#2C2C2C' }
-        },
-        tooltip: {
-          callbacks: {
-            label: c => ` ${c.dataset.label}: ${c.raw.toLocaleString()} letters`
-          },
-          bodyFont:  { family: 'Georgia, serif' },
-          titleFont: { family: 'Georgia, serif' }
-        }
-      },
-      scales: {
-        x: {
-          stacked: true,
-          ticks: { font: { family: 'Georgia, serif' }, color: '#2C2C2C' },
-          grid:  { display: false }
-        },
-        y: {
-          stacked: true,
-          ticks: { font: { family: 'Georgia, serif' }, color: '#2C2C2C' },
-          grid:  { color: '#ece4d4' },
-          title: {
-            display: true,
-            text: 'Number of Letters',
-            font: { family: 'Georgia, serif', size: 11 },
-            color: '#777'
-          }
-        }
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERVIEW CHORD
+// ─────────────────────────────────────────────────────────────────────────────
+function drawOverviewChord() {
+  const matrix = getFilteredMatrix(selectedDecade, null);
+  drawChord('#chord-svg', matrix, 380);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DECADE BAR CHART
+// ─────────────────────────────────────────────────────────────────────────────
+function drawDecadeChart() {
+  const svg = d3.select('#decade-svg');
+  svg.selectAll('*').remove();
+
+  const decades = Object.keys(DATA.byDecade).sort();
+  const pairs = ['FF', 'FM', 'MF', 'MM'].filter(p => activePairs[p]);
+
+  const margin = { top: 15, right: 15, bottom: 35, left: 42 };
+  const W = 400, H = 300;
+  const w = W - margin.left - margin.right;
+  const h = H - margin.top - margin.bottom;
+
+  svg.attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  // Stack data
+  const stackData = decades.map(d => {
+    const obj = { decade: d };
+    pairs.forEach(p => obj[p] = DATA.byDecade[d][p] || 0);
+    return obj;
+  });
+
+  const stack = d3.stack().keys(pairs);
+  const series = stack(stackData);
+
+  const maxY = d3.max(series, s => d3.max(s, d => d[1])) || 1;
+
+  const x = d3.scaleBand().domain(decades).range([0, w]).padding(0.25);
+  const y = d3.scaleLinear().domain([0, maxY * 1.05]).range([h, 0]);
+
+  // Axes
+  g.append('g')
+    .attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickSize(0))
+    .selectAll('text')
+    .attr('class', 'decade-label')
+    .style('font-family', 'Georgia, serif')
+    .style('font-size', '11px')
+    .style('fill', d => d === selectedDecade ? '#B8860B' : '#3A2C1E')
+    .style('font-weight', d => d === selectedDecade ? 'bold' : 'normal')
+    .style('cursor', 'pointer')
+    .on('click', (ev, d) => {
+      selectedDecade = selectedDecade === d ? null : d;
+      document.getElementById('reset-btn').classList.toggle('hidden', !selectedDecade);
+      drawOverviewChord();
+      drawDecadeChart();
+
+      const hint = document.getElementById('decade-hint');
+      hint.textContent = selectedDecade
+        ? `Showing ${selectedDecade} — click again to reset`
+        : 'Click a decade bar to filter the chord diagram';
+    });
+
+  g.select('.domain').attr('stroke', '#D4C8A8');
+
+  g.append('g')
+    .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(',')))
+    .selectAll('text')
+    .style('font-family', 'Georgia, serif')
+    .style('font-size', '10px')
+    .style('fill', '#7A6A5A');
+
+  g.selectAll('.tick line').attr('stroke', '#ECE4D4');
+  g.select('.domain').remove();
+
+  // Y grid
+  g.append('g').selectAll('line')
+    .data(y.ticks(5))
+    .join('line')
+    .attr('x1', 0).attr('x2', w)
+    .attr('y1', d => y(d)).attr('y2', d => y(d))
+    .attr('stroke', '#ECE4D4').attr('stroke-width', 0.5);
+
+  // Y label
+  g.append('text')
+    .attr('transform', 'rotate(-90)')
+    .attr('x', -h / 2).attr('y', -32)
+    .attr('text-anchor', 'middle')
+    .style('font-size', '10px').style('fill', '#9A8A7A').style('font-family', 'Georgia, serif')
+    .text('Number of Letters');
+
+  // Bars
+  series.forEach(s => {
+    g.selectAll(`.bar-${s.key}`).data(s).join('rect')
+      .attr('class', `bar-${s.key}`)
+      .attr('x', d => x(d.data.decade))
+      .attr('width', x.bandwidth())
+      .attr('y', h)
+      .attr('height', 0)
+      .attr('fill', COLORS[s.key])
+      .attr('rx', 1)
+      .style('cursor', 'pointer')
+      .style('opacity', d => selectedDecade && d.data.decade !== selectedDecade ? 0.3 : 1)
+      .on('mouseover', (ev, d) => {
+        const vals = pairs.map(p => `${PAIR_LABELS[p]}: <strong>${(d.data[p] || 0).toLocaleString()}</strong>`).join('<br>');
+        const total = pairs.reduce((s, p) => s + (d.data[p] || 0), 0);
+        showTip(`<strong>${d.data.decade}</strong><br>${vals}<br>Total: <strong>${total.toLocaleString()}</strong>`, ev);
+      })
+      .on('mousemove', moveTip)
+      .on('mouseout', hideTip)
+      .on('click', (ev, d) => {
+        selectedDecade = selectedDecade === d.data.decade ? null : d.data.decade;
+        document.getElementById('reset-btn').classList.toggle('hidden', !selectedDecade);
+        drawOverviewChord();
+        drawDecadeChart();
+      })
+      .transition().duration(600).delay((d, i) => i * 80)
+      .attr('y', d => y(d[1]))
+      .attr('height', d => y(d[0]) - y(d[1]));
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TIMELINE (stacked area chart)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawTimeline() {
+  const svg = d3.select('#timeline-svg');
+  svg.selectAll('*').remove();
+
+  const pairs = ['FF', 'FM', 'MF', 'MM'].filter(p => activePairs[p]);
+
+  const margin = { top: 20, right: 20, bottom: 40, left: 42 };
+  const W = 860, H = 320;
+  const w = W - margin.left - margin.right;
+  const h = H - margin.top - margin.bottom;
+
+  svg.attr('viewBox', `0 0 ${W} ${H}`).style('width', '100%').style('height', 'auto');
+
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  // Build year data
+  const years = [];
+  for (let y = DATA.metadata.dateRange[0]; y <= DATA.metadata.dateRange[1]; y++) {
+    const obj = { year: y };
+    const yd = DATA.byYear[String(y)] || {};
+    pairs.forEach(p => obj[p] = yd[p] || 0);
+    years.push(obj);
+  }
+
+  const stack = d3.stack().keys(pairs);
+  const series = stack(years);
+
+  const x = d3.scaleLinear().domain([DATA.metadata.dateRange[0], DATA.metadata.dateRange[1]]).range([0, w]);
+  const maxY = d3.max(series, s => d3.max(s, d => d[1])) || 1;
+  const y = d3.scaleLinear().domain([0, maxY * 1.08]).range([h, 0]);
+
+  // X axis
+  g.append('g')
+    .attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).ticks(10).tickFormat(d3.format('d')))
+    .selectAll('text')
+    .style('font-family', 'Georgia, serif')
+    .style('font-size', '10px')
+    .style('fill', '#7A6A5A');
+
+  g.selectAll('.domain').attr('stroke', '#D4C8A8');
+
+  // Y axis
+  g.append('g')
+    .call(d3.axisLeft(y).ticks(6))
+    .selectAll('text')
+    .style('font-family', 'Georgia, serif')
+    .style('font-size', '10px')
+    .style('fill', '#7A6A5A');
+
+  // Grid
+  g.append('g').selectAll('line')
+    .data(y.ticks(6))
+    .join('line')
+    .attr('x1', 0).attr('x2', w)
+    .attr('y1', d => y(d)).attr('y2', d => y(d))
+    .attr('stroke', '#ECE4D4').attr('stroke-width', 0.5);
+
+  // Area
+  const area = d3.area()
+    .x(d => x(d.data.year))
+    .y0(d => y(d[0]))
+    .y1(d => y(d[1]))
+    .curve(d3.curveMonotoneX);
+
+  series.forEach(s => {
+    g.append('path')
+      .datum(s)
+      .attr('fill', COLORS[s.key])
+      .attr('fill-opacity', 0.65)
+      .attr('stroke', COLORS[s.key])
+      .attr('stroke-width', 1.5)
+      .attr('d', area);
+  });
+
+  // Life events
+  LIFE_EVENTS.forEach(evt => {
+    if (evt.year < DATA.metadata.dateRange[0] || evt.year > DATA.metadata.dateRange[1]) return;
+    const ex = x(evt.year);
+    g.append('line')
+      .attr('x1', ex).attr('x2', ex)
+      .attr('y1', 0).attr('y2', h)
+      .attr('class', 'life-event-line');
+
+    g.append('text')
+      .attr('x', ex + 3).attr('y', 10)
+      .attr('class', 'life-event-label')
+      .attr('transform', `rotate(-35, ${ex + 3}, 10)`)
+      .text(evt.label);
+  });
+
+  // Hover overlay
+  const hoverG = g.append('g').style('display', 'none');
+  hoverG.append('line').attr('y1', 0).attr('y2', h).attr('stroke', '#B8860B').attr('stroke-width', 1).attr('stroke-dasharray', '3,2');
+  const hoverText = hoverG.append('text').attr('y', -6).style('font-size', '10px').style('fill', '#5A3E28').style('font-family', 'Georgia, serif');
+
+  g.append('rect')
+    .attr('width', w).attr('height', h)
+    .attr('fill', 'transparent')
+    .style('cursor', 'crosshair')
+    .on('mouseover', () => hoverG.style('display', null))
+    .on('mouseout', () => { hoverG.style('display', 'none'); hideTip(); })
+    .on('mousemove', function (ev) {
+      const [mx] = d3.pointer(ev, this);
+      const yr = Math.round(x.invert(mx));
+      const clampedYr = Math.max(DATA.metadata.dateRange[0], Math.min(DATA.metadata.dateRange[1], yr));
+      const cx = x(clampedYr);
+      hoverG.attr('transform', `translate(${cx},0)`);
+      hoverText.text(clampedYr);
+
+      const yd = DATA.byYear[String(clampedYr)] || {};
+      const vals = pairs.map(p => `${PAIR_LABELS[p]}: <strong>${(yd[p] || 0)}</strong>`).join('<br>');
+      const total = pairs.reduce((s, p) => s + (yd[p] || 0), 0);
+      showTip(`<strong>${clampedYr}</strong><br>${vals}<br>Total: <strong>${total}</strong>`, ev);
+    });
+
+  // Brush
+  const brush = d3.brushX()
+    .extent([[0, 0], [w, h]])
+    .on('end', function (ev) {
+      if (!ev.selection) {
+        timelineRange = null;
+      } else {
+        const [x0, x1] = ev.selection.map(x.invert).map(Math.round);
+        timelineRange = [x0, x1];
       }
+      updateTimelineChord();
+    });
+
+  g.append('g').attr('class', 'brush').call(brush)
+    .selectAll('.selection')
+    .attr('fill', '#B8860B')
+    .attr('fill-opacity', 0.12)
+    .attr('stroke', '#B8860B');
+}
+
+function updateTimelineChord() {
+  const title = document.getElementById('timeline-chord-title');
+  if (timelineRange) {
+    title.textContent = `Selected Period — ${timelineRange[0]}–${timelineRange[1]}`;
+  } else {
+    title.textContent = 'Selected Period — All Years';
+  }
+
+  const matrix = getFilteredMatrix(null, timelineRange);
+  drawChord('#timeline-chord-svg', matrix, 300);
+
+  // Stats
+  const statsDiv = document.getElementById('timeline-stats');
+  const total = matrix.flat().reduce((a, b) => a + b, 0);
+  const pairs = [
+    { key: 'FF', label: 'Female → Female', val: matrix[0][0] },
+    { key: 'FM', label: 'Female → Male', val: matrix[0][1] },
+    { key: 'MF', label: 'Male → Female', val: matrix[1][0] },
+    { key: 'MM', label: 'Male → Male', val: matrix[1][1] },
+  ].filter(p => activePairs[p.key]);
+
+  statsDiv.innerHTML = `
+    <div style="font-size:1.4rem;font-weight:bold;color:#3A2C1E;margin-bottom:0.6rem;">
+      ${total.toLocaleString()} <span style="font-size:0.75rem;color:#7A6A5A;">letters</span>
+    </div>
+    ${pairs.map(p => `
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+        <div style="width:10px;height:10px;border-radius:2px;background:${COLORS[p.key]};flex-shrink:0;"></div>
+        <span style="font-size:0.78rem;color:#5A4A3A;flex:1;">${p.label}</span>
+        <strong style="font-size:0.82rem;color:#3A2C1E;">${p.val.toLocaleString()}</strong>
+        <span style="font-size:0.7rem;color:#9A8A7A;">${total ? (p.val / total * 100).toFixed(1) + '%' : '—'}</span>
+      </div>
+    `).join('')}
+    ${timelineRange ? `<div style="margin-top:0.7rem;font-size:0.72rem;color:#9A8A7A;font-style:italic;">
+      Spanning ${timelineRange[1] - timelineRange[0] + 1} years
+    </div>` : ''}
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CORRESPONDENTS TABLE
+// ─────────────────────────────────────────────────────────────────────────────
+let corrSortKey = 'total';
+let corrSortDir = -1;
+
+function buildCorrespondentsTable() {
+  renderCorrespondentsTable();
+
+  // Header sort
+  document.querySelectorAll('#corr-table th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (corrSortKey === key) corrSortDir *= -1;
+      else { corrSortKey = key; corrSortDir = -1; }
+      renderCorrespondentsTable();
+    });
+  });
+}
+
+function renderCorrespondentsTable() {
+  const tbody = document.getElementById('corr-tbody');
+  const maxTotal = DATA.topCorrespondents[0]?.total || 1;
+
+  const sorted = [...DATA.topCorrespondents].sort((a, b) => {
+    if (corrSortKey === 'name') return corrSortDir * a.name.localeCompare(b.name);
+    if (corrSortKey === 'gender') return corrSortDir * a.gender.localeCompare(b.gender);
+    return corrSortDir * (a[corrSortKey] - b[corrSortKey]);
+  });
+
+  // Update sort arrows
+  document.querySelectorAll('#corr-table th[data-sort]').forEach(th => {
+    const arrow = th.querySelector('.sort-arrow');
+    if (th.dataset.sort === corrSortKey) {
+      arrow.classList.add('active');
+      arrow.textContent = corrSortDir > 0 ? '▲' : '▼';
+    } else {
+      arrow.classList.remove('active');
+      arrow.textContent = '▲▼';
     }
   });
-}());
+
+  tbody.innerHTML = sorted.slice(0, 20).map((c, i) => `
+    <tr data-name="${c.name}" style="cursor:pointer;">
+      <td>${c.name}</td>
+      <td><span class="gender-badge ${c.gender.toLowerCase()}">${c.gender}</span></td>
+      <td>${c.sent.toLocaleString()}</td>
+      <td>${c.received.toLocaleString()}</td>
+      <td><strong>${c.total.toLocaleString()}</strong></td>
+      <td>
+        <div style="display:flex;gap:2px;align-items:center;">
+          <span class="corr-bar" style="width:${c.sent / maxTotal * 100}px;background:${c.gender === 'F' ? COLORS.female : COLORS.male};opacity:0.7;"></span>
+          <span class="corr-bar" style="width:${c.received / maxTotal * 100}px;background:${c.gender === 'F' ? COLORS.female : COLORS.male};opacity:0.35;"></span>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Row click
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('click', () => showCorrespondentDetail(tr.dataset.name));
+  });
+}
+
+function showCorrespondentDetail(name) {
+  const detail = document.getElementById('corr-detail');
+  detail.classList.add('visible');
+
+  // Highlight row
+  document.querySelectorAll('#corr-tbody tr').forEach(tr => {
+    tr.classList.toggle('selected', tr.dataset.name === name);
+  });
+
+  // Find person
+  const person = DATA.topCorrespondents.find(c => c.name === name);
+  document.getElementById('corr-detail-name').textContent = name;
+
+  // Compute yearly breakdown for this person
+  const yearlyData = {};
+  DATA.letters.forEach(l => {
+    if (l.s === name || l.r === name) {
+      if (!yearlyData[l.y]) yearlyData[l.y] = { sent: 0, received: 0 };
+      if (l.s === name) yearlyData[l.y].sent++;
+      if (l.r === name) yearlyData[l.y].received++;
+    }
+  });
+
+  const statsDiv = document.getElementById('corr-detail-stats');
+  statsDiv.innerHTML = `
+    <div class="detail-stat">Sent: <strong>${person.sent.toLocaleString()}</strong></div>
+    <div class="detail-stat">Received: <strong>${person.received.toLocaleString()}</strong></div>
+    <div class="detail-stat">Gender: <strong>${person.gender === 'F' ? 'Female' : person.gender === 'M' ? 'Male' : 'Unknown'}</strong></div>
+  `;
+
+  // Draw mini bar chart
+  const svg = d3.select('#corr-detail-chart');
+  svg.selectAll('*').remove();
+
+  const years = Object.keys(yearlyData).map(Number).sort();
+  if (years.length === 0) return;
+
+  const margin = { top: 10, right: 10, bottom: 25, left: 30 };
+  const W = 500, H = 140;
+  const w = W - margin.left - margin.right;
+  const h = H - margin.top - margin.bottom;
+
+  svg.attr('viewBox', `0 0 ${W} ${H}`).style('width', '100%');
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleBand().domain(years).range([0, w]).padding(0.3);
+  const maxV = d3.max(years, y => (yearlyData[y].sent || 0) + (yearlyData[y].received || 0));
+  const y = d3.scaleLinear().domain([0, maxV * 1.1]).range([h, 0]);
+
+  g.append('g').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickValues(years.filter((_, i) => i % Math.ceil(years.length / 10) === 0)).tickSize(0))
+    .selectAll('text').style('font-size', '8px').style('fill', '#7A6A5A');
+
+  g.append('g').call(d3.axisLeft(y).ticks(3))
+    .selectAll('text').style('font-size', '8px').style('fill', '#7A6A5A');
+
+  g.selectAll('.domain').remove();
+
+  years.forEach(yr => {
+    const d = yearlyData[yr];
+    const sentColor = person.gender === 'F' ? COLORS.female : COLORS.male;
+    // Sent
+    g.append('rect')
+      .attr('x', x(yr)).attr('width', x.bandwidth())
+      .attr('y', y(d.sent + d.received)).attr('height', y(0) - y(d.sent))
+      .attr('fill', sentColor).attr('opacity', 0.8);
+    // Received
+    g.append('rect')
+      .attr('x', x(yr)).attr('width', x.bandwidth())
+      .attr('y', y(d.received)).attr('height', y(0) - y(d.received))
+      .attr('fill', sentColor).attr('opacity', 0.35);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────────────────────────────────────
+loadData();
 </script>
 </body>
 </html>
