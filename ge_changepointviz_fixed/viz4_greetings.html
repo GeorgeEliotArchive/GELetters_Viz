@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>George Eliot — Salutation Patterns & Evolution</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
+  <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f5f0e6; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+             Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend, Brush,
+             ComposedChart, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+             PieChart, Pie, Cell } = Recharts;
+
+    
+    const ANNUAL = {"1836":{"total":1,"formality":6.0,"My dear Mr/Mrs":1,"Dear [first name]":0,"My dear [first name]":0,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1838":{"total":3,"formality":4.33,"My dear Mr/Mrs":1,"Dear [first name]":0,"My dear [first name]":1,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":1,"Dear Sir":0},"1839":{"total":8,"formality":3.75,"My dear Mr/Mrs":0,"Dear [first name]":0,"My dear [first name]":2,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":3,"Dear Sir":0},"1840":{"total":21,"formality":3.48,"My dear Mr/Mrs":1,"Dear [first name]":0,"My dear [first name]":12,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":2,"Dear Sir":0},"1841":{"total":24,"formality":3.88,"My dear Mr/Mrs":1,"Dear [first name]":0,"My dear [first name]":13,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":3,"Dear Sir":0},"1842":{"total":15,"formality":3.27,"My dear Mr/Mrs":0,"Dear [first name]":0,"My dear [first name]":9,"Dearest [name]":1,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":1,"Dear Sir":0},"1843":{"total":6,"formality":3.67,"My dear Mr/Mrs":0,"Dear [first name]":1,"My dear [first name]":3,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1844":{"total":5,"formality":4.0,"My dear Mr/Mrs":1,"Dear [first name]":0,"My dear [first name]":2,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1845":{"total":10,"formality":3.6,"My dear Mr/Mrs":0,"Dear [first name]":1,"My dear [first name]":6,"Dearest [name]":0,"Dear Friend(s)":0,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1846":{"total":14,"formality":3.71,"My dear Mr/Mrs":0,"Dear [first name]":3,"My dear [first name]":6,"Dearest [name]":0,"Dear Friend(s)":1,"Dear Mr/Mrs":0,"My dear Friend(s)":1,"Dear Sir":0},"1847":{"total":11,"formality":3.36,"My dear Mr/Mrs":0,"Dear [first name]":3,"My dear [first name]":5,"Dearest [name]":0,"Dear Friend(s)":1,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1848":{"total":18,"formality":3.72,"My dear Mr/Mrs":0,"Dear [first name]":6,"My dear [first name]":7,"Dearest [name]":0,"Dear Friend(s)":1,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1849":{"total":20,"formality":3.8,"My dear Mr/Mrs":1,"Dear [first name]":6,"My dear [first name]":7,"Dearest [name]":0,"Dear Friend(s)":3,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1850":{"total":9,"formality":3.89,"My dear Mr/Mrs":1,"Dear [first name]":1,"My dear [first name]":4,"Dearest [name]":0,"Dear Friend(s)":2,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":0},"1851":{"total":31,"formality":4.39,"My dear Mr/Mrs":5,"Dear [first name]":6,"My dear [first name]":7,"Dearest [name]":0,"Dear Friend(s)":9,"Dear Mr/Mrs":0,"My dear Friend(s)":1,"Dear Sir":0},"1852":{"total":96,"formality":4.62,"My dear Mr/Mrs":18,"Dear [first name]":19,"My dear [first name]":10,"Dearest [name]":2,"Dear Friend(s)":25,"Dear Mr/Mrs":3,"My dear Friend(s)":2,"Dear Sir":2},"1853":{"total":74,"formality":4.51,"My dear Mr/Mrs":12,"Dear [first name]":18,"My dear [first name]":8,"Dearest [name]":0,"Dear Friend(s)":17,"Dear Mr/Mrs":5,"My dear Friend(s)":3,"Dear Sir":0},"1854":{"total":43,"formality":4.37,"My dear Mr/Mrs":6,"Dear [first name]":13,"My dear [first name]":6,"Dearest [name]":0,"Dear Friend(s)":7,"Dear Mr/Mrs":1,"My dear Friend(s)":3,"Dear Sir":0},"1855":{"total":26,"formality":4.62,"My dear Mr/Mrs":5,"Dear [first name]":4,"My dear [first name]":6,"Dearest [name]":1,"Dear Friend(s)":5,"Dear Mr/Mrs":2,"My dear Friend(s)":1,"Dear Sir":0},"1856":{"total":34,"formality":4.68,"My dear Mr/Mrs":8,"Dear [first name]":3,"My dear [first name]":3,"Dearest [name]":1,"Dear Friend(s)":11,"Dear Mr/Mrs":1,"My dear Friend(s)":2,"Dear Sir":0},"1857":{"total":47,"formality":5.04,"My dear Mr/Mrs":18,"Dear [first name]":8,"My dear [first name]":4,"Dearest [name]":1,"Dear Friend(s)":6,"Dear Mr/Mrs":3,"My dear Friend(s)":2,"Dear Sir":1},"1858":{"total":38,"formality":5.03,"My dear Mr/Mrs":14,"Dear [first name]":9,"My dear [first name]":3,"Dearest [name]":1,"Dear Friend(s)":5,"Dear Mr/Mrs":1,"My dear Friend(s)":1,"Dear Sir":1},"1859":{"total":95,"formality":5.23,"My dear Mr/Mrs":34,"Dear [first name]":22,"My dear [first name]":7,"Dearest [name]":3,"Dear Friend(s)":11,"Dear Mr/Mrs":5,"My dear Friend(s)":2,"Dear Sir":4},"1860":{"total":45,"formality":5.16,"My dear Mr/Mrs":17,"Dear [first name]":10,"My dear [first name]":4,"Dearest [name]":2,"Dear Friend(s)":5,"Dear Mr/Mrs":0,"My dear Friend(s)":0,"Dear Sir":3},"1861":{"total":55,"formality":4.85,"My dear Mr/Mrs":20,"Dear [first name]":12,"My dear [first name]":3,"Dearest [name]":2,"Dear Friend(s)":8,"Dear Mr/Mrs":1,"My dear Friend(s)":0,"Dear Sir":1},"1862":{"total":42,"formality":5.1,"My dear Mr/Mrs":17,"Dear [first name]":9,"My dear [first name]":2,"Dearest [name]":0,"Dear Friend(s)":3,"Dear Mr/Mrs":4,"My dear Friend(s)":1,"Dear Sir":2},"1863":{"total":38,"formality":4.76,"My dear Mr/Mrs":14,"Dear [first name]":4,"My dear [first name]":4,"Dearest [name]":3,"Dear Friend(s)":3,"Dear Mr/Mrs":3,"My dear Friend(s)":0,"Dear Sir":1},"1864":{"total":36,"formality":4.92,"My dear Mr/Mrs":13,"Dear [first name]":2,"My dear [first name]":7,"Dearest [name]":3,"Dear Friend(s)":2,"Dear Mr/Mrs":3,"My dear Friend(s)":0,"Dear Sir":0},"1865":{"total":37,"formality":4.81,"My dear Mr/Mrs":10,"Dear [first name]":2,"My dear [first name]":5,"Dearest [name]":6,"Dear Friend(s)":2,"Dear Mr/Mrs":3,"My dear Friend(s)":2,"Dear Sir":0},"1866":{"total":50,"formality":4.72,"My dear Mr/Mrs":14,"Dear [first name]":3,"My dear [first name]":7,"Dearest [name]":8,"Dear Friend(s)":3,"Dear Mr/Mrs":4,"My dear Friend(s)":1,"Dear Sir":0},"1867":{"total":54,"formality":4.56,"My dear Mr/Mrs":12,"Dear [first name]":3,"My dear [first name]":5,"Dearest [name]":8,"Dear Friend(s)":2,"Dear Mr/Mrs":6,"My dear Friend(s)":3,"Dear Sir":0},"1868":{"total":59,"formality":4.56,"My dear Mr/Mrs":13,"Dear [first name]":3,"My dear [first name]":5,"Dearest [name]":8,"Dear Friend(s)":3,"Dear Mr/Mrs":8,"My dear Friend(s)":2,"Dear Sir":1},"1869":{"total":54,"formality":4.44,"My dear Mr/Mrs":11,"Dear [first name]":6,"My dear [first name]":3,"Dearest [name]":8,"Dear Friend(s)":1,"Dear Mr/Mrs":9,"My dear Friend(s)":1,"Dear Sir":1},"1870":{"total":37,"formality":4.35,"My dear Mr/Mrs":8,"Dear [first name]":3,"My dear [first name]":5,"Dearest [name]":3,"Dear Friend(s)":1,"Dear Mr/Mrs":5,"My dear Friend(s)":1,"Dear Sir":0},"1871":{"total":50,"formality":4.52,"My dear Mr/Mrs":10,"Dear [first name]":3,"My dear [first name]":7,"Dearest [name]":6,"Dear Friend(s)":4,"Dear Mr/Mrs":6,"My dear Friend(s)":3,"Dear Sir":0},"1872":{"total":59,"formality":4.81,"My dear Mr/Mrs":16,"Dear [first name]":3,"My dear [first name]":5,"Dearest [name]":7,"Dear Friend(s)":3,"Dear Mr/Mrs":10,"My dear Friend(s)":0,"Dear Sir":0},"1873":{"total":74,"formality":4.86,"My dear Mr/Mrs":17,"Dear [first name]":9,"My dear [first name]":6,"Dearest [name]":7,"Dear Friend(s)":3,"Dear Mr/Mrs":10,"My dear Friend(s)":3,"Dear Sir":1},"1874":{"total":65,"formality":4.82,"My dear Mr/Mrs":16,"Dear [first name]":3,"My dear [first name]":5,"Dearest [name]":8,"Dear Friend(s)":2,"Dear Mr/Mrs":15,"My dear Friend(s)":2,"Dear Sir":0},"1875":{"total":52,"formality":4.33,"My dear Mr/Mrs":9,"Dear [first name]":4,"My dear [first name]":3,"Dearest [name]":12,"Dear Friend(s)":1,"Dear Mr/Mrs":7,"My dear Friend(s)":2,"Dear Sir":0},"1876":{"total":34,"formality":4.76,"My dear Mr/Mrs":9,"Dear [first name]":2,"My dear [first name]":4,"Dearest [name]":6,"Dear Friend(s)":1,"Dear Mr/Mrs":5,"My dear Friend(s)":0,"Dear Sir":0},"1877":{"total":58,"formality":4.59,"My dear Mr/Mrs":16,"Dear [first name]":3,"My dear [first name]":6,"Dearest [name]":6,"Dear Friend(s)":2,"Dear Mr/Mrs":9,"My dear Friend(s)":1,"Dear Sir":1},"1878":{"total":41,"formality":4.61,"My dear Mr/Mrs":10,"Dear [first name]":3,"My dear [first name]":3,"Dearest [name]":8,"Dear Friend(s)":1,"Dear Mr/Mrs":8,"My dear Friend(s)":0,"Dear Sir":0},"1879":{"total":119,"formality":4.79,"My dear Mr/Mrs":38,"Dear [first name]":4,"My dear [first name]":11,"Dearest [name]":12,"Dear Friend(s)":5,"Dear Mr/Mrs":18,"My dear Friend(s)":4,"Dear Sir":1},"1880":{"total":86,"formality":4.76,"My dear Mr/Mrs":19,"Dear [first name]":10,"My dear [first name]":8,"Dearest [name]":14,"Dear Friend(s)":1,"Dear Mr/Mrs":14,"My dear Friend(s)":0,"Dear Sir":2}};
+    
+    const CATS = ["My dear Mr/Mrs","Dear [first name]","My dear [first name]","Dearest [name]","Dear Friend(s)","Dear Mr/Mrs","My dear Friend(s)","Dear Sir"];
+    const COLORS = {"My dear Mr/Mrs":"#2563eb","Dear [first name]":"#f97316","My dear [first name]":"#10b981","Dearest [name]":"#f43f5e","Dear Friend(s)":"#a855f7","Dear Mr/Mrs":"#0891b2","My dear Friend(s)":"#eab308","Dear Sir":"#64748b"};
+    const FORMALITY_SCORE = {"My dear Mr/Mrs":6,"Dear [first name]":4,"My dear [first name]":3,"Dearest [name]":2,"Dear Friend(s)":5,"Dear Mr/Mrs":7,"My dear Friend(s)":4,"Dear Sir":8};
+    
+    const CAT_CPS = {"My dear Mr/Mrs":[1840,1857],"Dear [first name]":[1846,1866],"My dear [first name]":[1851],"Dearest [name]":[1875],"Dear Friend(s)":[1849,1857,1863],"Dear Mr/Mrs":[1862,1873],"My dear Friend(s)":[1840],"Dear Sir":[1868]};
+    const CAT_SEGS = {"My dear Mr/Mrs":[{"s":1836,"e":1839,"m":44.4},{"s":1840,"e":1856,"m":6.8},{"s":1857,"e":1880,"m":32.4}],"Dear [first name]":[{"s":1836,"e":1845,"m":1.1},{"s":1846,"e":1865,"m":33.6},{"s":1866,"e":1880,"m":7.6}],"My dear [first name]":[{"s":1836,"e":1850,"m":47.9},{"s":1851,"e":1880,"m":11.5}],"Dearest [name]":[{"s":1836,"e":1874,"m":6.2},{"s":1875,"e":1880,"m":29.2}],"Dear Friend(s)":[{"s":1836,"e":1848,"m":1.4},{"s":1849,"e":1856,"m":38.3},{"s":1857,"e":1862,"m":13.0},{"s":1863,"e":1880,"m":3.3}],"Dear Mr/Mrs":[{"s":1836,"e":1861,"m":1.3},{"s":1862,"e":1872,"m":9.5},{"s":1873,"e":1880,"m":18.7}],"My dear Friend(s)":[{"s":1836,"e":1839,"m":36.1},{"s":1840,"e":1880,"m":4.3}],"Dear Sir":[]};
+    const FORM_CPS = [1840,1852];
+    const FORM_SEGS = [{"s":1836,"e":1839,"m":4.69},{"s":1840,"e":1851,"m":3.65},{"s":1852,"e":1880,"m":4.69}];
+    
+    const EXAMPLES = {"My dear Mr/Mrs":[{"raw":"My dear Sir","n":227},{"raw":"My dear Mr. Blackwood","n":61},{"raw":"My dear Mr. William","n":30},{"raw":"My dear Mrs. Pattison","n":15},{"raw":"My dear Mrs. Cross","n":14}],"Dear [first name]":[{"raw":"Dear Sara","n":199},{"raw":"Dear Cara","n":65},{"raw":"Dear Barbara","n":24},{"raw":"Dear Bessie","n":17},{"raw":"Dear Mr. Harrison","n":22}],"My dear [first name]":[{"raw":"My dear Sara","n":79},{"raw":"My dear Cara","n":42},{"raw":"My dear Barbara","n":37},{"raw":"My dear Fanny","n":15},{"raw":"My dear Mr. Harrison","n":20}],"Dearest [name]":[{"raw":"Dearest Barbara","n":58},{"raw":"Dearest Boy","n":44},{"raw":"Dearest Elma","n":38},{"raw":"Dearest Bessie","n":11},{"raw":"Dearest B","n":9}],"Dear Friend(s)":[{"raw":"Dear Friend","n":182},{"raw":"Dear Friends","n":32}],"Dear Mr/Mrs":[{"raw":"Dear Mr. Harrison","n":22},{"raw":"Dear Mr. Langford","n":11},{"raw":"Dear Mr. Main","n":10}],"My dear Friend(s)":[{"raw":"My dear Friend","n":46},{"raw":"My dear Friends","n":11}],"Dear Sir":[{"raw":"Dear Sir","n":20},{"raw":"Dear Madam","n":11}]};
+    
+    const RECIPIENTS = {"Sara Sophia Hennell":{"count":287,"avg_formality":3.7,"top_raw":[{"raw":"Dear Sara","n":197},{"raw":"My dear Sara","n":79},{"raw":"Dearest Sara","n":4}]},"John Blackwood":{"count":204,"avg_formality":6.01,"top_raw":[{"raw":"My dear Sir","n":141},{"raw":"My dear Mr. Blackwood","n":60},{"raw":"Dear Mr. Blackwood","n":3}]},"Mme Eugene Bodichon":{"count":127,"avg_formality":2.67,"top_raw":[{"raw":"Dearest Barbara","n":57},{"raw":"My dear Barbara","n":36},{"raw":"Dear Barbara","n":22}]},"Mrs. Charles Bray":{"count":101,"avg_formality":3.92,"top_raw":[{"raw":"Dear Cara","n":62},{"raw":"My dear Cara","n":35},{"raw":"Dearest Cara","n":4}]},"Charles Bray":{"count":43,"avg_formality":4.67,"top_raw":[{"raw":"Dear Friend","n":25},{"raw":"My dear Friend","n":10},{"raw":"Dear Mr. Bray","n":5}]},"Charles Lee Lewes":{"count":57,"avg_formality":2.14,"top_raw":[{"raw":"Dearest Boy","n":43},{"raw":"My dear Boy","n":10},{"raw":"Dear Boy","n":3}]},"Mrs. Elma Stuart":{"count":46,"avg_formality":2.13,"top_raw":[{"raw":"Dearest Elma","n":38},{"raw":"My dear Elma","n":6},{"raw":"Dear Elma","n":2}]},"William Blackwood":{"count":30,"avg_formality":6.03,"top_raw":[{"raw":"My dear Mr. William","n":26},{"raw":"Dear Mr. Blackwood","n":3},{"raw":"My dear Sir","n":1}]},"Frederic Harrison":{"count":38,"avg_formality":6.53,"top_raw":[{"raw":"My dear Mr. Harrison","n":20},{"raw":"Dear Mr. Harrison","n":18}]},"Bessie Rayner Parkes":{"count":28,"avg_formality":3.07,"top_raw":[{"raw":"Dear Bessie","n":12},{"raw":"Dearest Bessie","n":11},{"raw":"My dear Bessie","n":5}]}};
+    
+    const YEARS = Object.keys(ANNUAL).map(Number).sort((a,b)=>a-b);
+    
+    const chartData = YEARS.map(y => {
+      const d = { year: y, total: ANNUAL[y].total, formality: ANNUAL[y].formality };
+      CATS.forEach(c => { d[c] = ANNUAL[y][c] || 0; });
+      return d;
+    });
+    
+    const LIFE_EVENTS = [
+      { year: 1841, label: "Moves to Coventry" },{ year: 1846, label: "Translates Strauss" },
+      { year: 1851, label: "London / Westminster Review" },{ year: 1854, label: "Union with Lewes" },
+      { year: 1857, label: "First fiction" },{ year: 1859, label: "Adam Bede" },
+      { year: 1863, label: "Romola" },{ year: 1871, label: "Middlemarch" },
+      { year: 1878, label: "Lewes dies" },{ year: 1880, label: "Marries Cross; dies" },
+    ];
+    
+    function StackTip({ active, payload, label }) {
+      if (!active || !payload?.length) return null;
+      const d = payload[0]?.payload;
+      return (
+        <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 10, padding: "12px 16px", fontFamily: "system-ui, sans-serif", maxWidth: 270 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#3a2a1a", marginBottom: 3 }}>{label}</div>
+          <div style={{ fontSize: 11, color: "#7a6a56", marginBottom: 4 }}>{d?.total} greetings · Formality: {d?.formality?.toFixed(1)}/9</div>
+          {CATS.filter(c => (d?.[c] || 0) > 0).map(c => (
+            <div key={c} style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ width: 7, height: 7, borderRadius: 2, background: COLORS[c] }} />
+                <span style={{ fontSize: 11, color: "#5a4a38" }}>{c}</span>
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: COLORS[c] }}>{d[c]}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    function FormalityTip({ active, payload, label }) {
+      if (!active || !payload?.length) return null;
+      const d = payload[0]?.payload;
+      const f = d?.formality;
+      const desc = f <= 3 ? "Intimate" : f <= 4.5 ? "Warm" : f <= 5.5 ? "Mixed" : "Formal";
+      return (
+        <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 10, padding: "10px 14px", fontFamily: "system-ui" }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#3a2a1a" }}>{label}</div>
+          <div style={{ fontSize: 12, color: "#7a6a56", marginBottom: 4 }}>{d?.total} greetings</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#b45309" }}>{f?.toFixed(2)} / 9 — {desc}</div>
+        </div>
+      );
+    }
+    
+    function RecipientCard({ name, data, isSelected, onClick }) {
+      const fc = data.avg_formality <= 3 ? "#f43f5e" : data.avg_formality <= 4.5 ? "#f97316" : data.avg_formality <= 5.5 ? "#a855f7" : "#2563eb";
+      return (
+        <div onClick={onClick} style={{ background: isSelected ? "#e2d9cc" : "#ebe3d6", borderRadius: 10, border: `1.5px solid ${isSelected ? fc : "#d6cab8"}`, padding: 14, cursor: "pointer", transition: "all 0.2s" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#3a2a1a" }}>{name}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 11, color: "#7a6a56" }}>{data.count}</span>
+              <span style={{ padding: "2px 8px", borderRadius: 10, background: fc + "18", color: fc, fontSize: 11, fontWeight: 700 }}>{data.avg_formality.toFixed(1)}</span>
+            </div>
+          </div>
+          {isSelected && (
+            <div style={{ marginTop: 6 }}>
+              {data.top_raw.map((r, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "3px 8px", background: "#f5f0e6", borderRadius: 4, marginBottom: 2 }}>
+                  <span style={{ fontSize: 12, color: "#5a4a38", fontStyle: "italic", fontFamily: "'Crimson Pro', Georgia, serif" }}>"{r.raw}"</span>
+                  <span style={{ fontSize: 11, color: "#7a6a56", fontWeight: 600 }}>×{r.n}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    function App() {
+      const [view, setView] = useState("stacked");
+      const [showCPs, setShowCPs] = useState(true);
+      const [showEvents, setShowEvents] = useState(false);
+      const [expandedCat, setExpandedCat] = useState(null);
+      const [selectedRecip, setSelectedRecip] = useState(null);
+    
+      const allCPs = useMemo(() => {
+        const cps = {};
+        Object.entries(CAT_CPS).forEach(([cat, yrs]) => {
+          yrs.forEach(yr => { if (!cps[yr]) cps[yr] = []; cps[yr].push(cat); });
+        });
+        return cps;
+      }, []);
+    
+      return (
+        <div style={{ background: "#f5f0e6", minHeight: "100vh", color: "#4a3726", fontFamily: "system-ui, sans-serif", padding: "26px 20px" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            {/* Header */}
+            <div style={{ marginBottom: 26, borderBottom: "1px solid #d6cab8", paddingBottom: 20 }}>
+              <div style={{ fontSize: 10, letterSpacing: 5, color: "#2563eb", textTransform: "uppercase", marginBottom: 8, fontWeight: 600 }}>George Eliot Letters Archive · Stylometric Analysis</div>
+              <h1 style={{ fontSize: 28, fontWeight: 300, margin: 0, lineHeight: 1.25, fontFamily: "'Crimson Pro', Georgia, serif", color: "#3a2a1a" }}>
+                Opening Words: <span style={{ fontWeight: 700, background: "linear-gradient(90deg, #2563eb, #10b981, #f43f5e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Salutation Patterns</span>
+              </h1>
+              <p style={{ fontSize: 13, color: "#7a6a56", marginTop: 8, maxWidth: 700, lineHeight: 1.65 }}>
+                How George Eliot opened 1,843 letters across 44 years — from the intimacy of "Dearest Barbara" to the formality of "My dear Sir." Greetings calibrate tone before a word of content is read.
+              </p>
+            </div>
+    
+            {/* Controls */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18, alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 4, background: "#ebe3d6", padding: 3, borderRadius: 7 }}>
+                {[["stacked","Category Mix"],["formality","Formality Score"]].map(([id,l]) => (
+                  <button key={id} onClick={() => setView(id)} style={{ padding: "7px 16px", borderRadius: 5, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, background: view === id ? "#2563eb" : "transparent", color: view === id ? "#faf6ee" : "#7a6a56", transition: "all 0.2s" }}>{l}</button>
+                ))}
+              </div>
+              <button onClick={() => setShowCPs(p => !p)} style={{ padding: "5px 12px", borderRadius: 16, border: `1.5px solid ${showCPs ? "#b45309" : "#d6cab8"}`, background: showCPs ? "#b4530918" : "transparent", color: showCPs ? "#b45309" : "#9a8a76", cursor: "pointer", fontSize: 11, fontWeight: 500 }}>⬥ Change Points</button>
+              <button onClick={() => setShowEvents(p => !p)} style={{ padding: "5px 12px", borderRadius: 16, border: `1.5px solid ${showEvents ? "#22d3ee" : "#d6cab8"}`, background: showEvents ? "#22d3ee18" : "transparent", color: showEvents ? "#0e7490" : "#9a8a76", cursor: "pointer", fontSize: 11, fontWeight: 500 }}>Life Events</button>
+            </div>
+    
+            {/* Chart */}
+            <div style={{ background: "#ebe3d6", borderRadius: 14, border: "1px solid #d6cab8", padding: "18px 12px 8px 0" }}>
+              {view === "stacked" && (
+                <ResponsiveContainer width="100%" height={400}>
+                  <AreaChart data={chartData} margin={{ top: 28, right: 18, left: 8, bottom: 8 }} stackOffset="expand">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#d6cab8" />
+                    <XAxis dataKey="year" tick={{ fill: "#8a7a66", fontSize: 11 }} tickLine={{ stroke: "#c4b8a4" }} axisLine={{ stroke: "#c4b8a4" }} />
+                    <YAxis tick={{ fill: "#8a7a66", fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={v => (v * 100).toFixed(0) + "%"} />
+                    <Tooltip content={<StackTip />} />
+                    {showCPs && Object.keys(allCPs).map(yr => <ReferenceLine key={yr} x={+yr} stroke="#d97706" strokeDasharray="6 3" strokeWidth={2} label={{ value: yr, position: "top", fill: "#b45309", fontSize: 9, fontWeight: 700 }} />)}
+                    {showEvents && LIFE_EVENTS.map(e => <ReferenceLine key={e.year} x={e.year} stroke="#22d3ee" strokeDasharray="2 4" strokeWidth={1} strokeOpacity={0.5} />)}
+                    {CATS.map(c => <Area key={c} type="monotone" dataKey={c} stackId="1" stroke={COLORS[c]} fill={COLORS[c]} fillOpacity={0.55} strokeWidth={1} />)}
+                    <Brush dataKey="year" height={22} fill="#ebe3d6" stroke="#c4b8a4"><BarChart><Bar dataKey="total" fill="#c4b8a4" /></BarChart></Brush>
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+    
+              {view === "formality" && (
+                <div>
+                  <div style={{ paddingLeft: 20, fontSize: 12, color: "#7a6a56", marginBottom: 4 }}>Formality Score (2 = intimate, 8 = formal)</div>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <ComposedChart data={chartData} margin={{ top: 28, right: 18, left: 8, bottom: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#d6cab8" />
+                      <XAxis dataKey="year" tick={{ fill: "#8a7a66", fontSize: 11 }} tickLine={{ stroke: "#c4b8a4" }} axisLine={{ stroke: "#c4b8a4" }} />
+                      <YAxis domain={[2, 7]} tick={{ fill: "#8a7a66", fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <Tooltip content={<FormalityTip />} />
+                      {showCPs && FORM_CPS.map(yr => <ReferenceLine key={yr} x={yr} stroke="#d97706" strokeDasharray="6 3" strokeWidth={2} label={{ value: `${yr}`, position: "top", fill: "#b45309", fontSize: 10, fontWeight: 700 }} />)}
+                      {showEvents && LIFE_EVENTS.map(e => <ReferenceLine key={e.year} x={e.year} stroke="#22d3ee" strokeDasharray="2 4" strokeWidth={1} strokeOpacity={0.5} />)}
+                      {FORM_SEGS.map((seg, i) => (
+                        <ReferenceLine key={`seg-${i}`} y={seg.m} stroke="#2563eb" strokeDasharray="8 4" strokeWidth={1.5} strokeOpacity={0.4}
+                          label={{ value: `${seg.s}–${seg.e}: ${seg.m.toFixed(1)}`, position: i === 1 ? "insideBottomRight" : "insideTopRight", fill: "#2563eb", fontSize: 10 }} />
+                      ))}
+                      <Line type="monotone" dataKey="formality" stroke="#b45309" strokeWidth={2.5} dot={{ r: 3, fill: "#b45309" }} activeDot={{ r: 6, fill: "#b45309" }} />
+                      <Brush dataKey="year" height={22} fill="#ebe3d6" stroke="#c4b8a4"><BarChart><Bar dataKey="total" fill="#c4b8a4" /></BarChart></Brush>
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+    
+            {/* Formality Segments */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginTop: 20 }}>
+              {FORM_SEGS.map((seg, i) => {
+                const prev = i > 0 ? FORM_SEGS[i - 1] : null;
+                const pct = prev ? ((seg.m - prev.m) / prev.m * 100) : null;
+                const desc = seg.m <= 3.8 ? "Intimate" : seg.m <= 4.5 ? "Warm-Moderate" : "Professional";
+                const sc = seg.m <= 3.8 ? "#f43f5e" : seg.m <= 4.5 ? "#f97316" : "#2563eb";
+                return (
+                  <div key={i} style={{ padding: 18, background: "#ebe3d6", borderRadius: 12, border: "1px solid #d6cab8", borderTop: `3px solid ${sc}` }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#3a2a1a", marginBottom: 4 }}>{seg.s}–{seg.e}</div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+                      <span style={{ fontSize: 28, fontWeight: 300, color: sc }}>{seg.m.toFixed(2)}</span>
+                      <span style={{ fontSize: 12, color: "#7a6a56" }}>{desc}</span>
+                      {pct !== null && <span style={{ fontSize: 12, fontWeight: 600, color: pct > 0 ? "#b45309" : "#10b981" }}>{pct > 0 ? "↑" : "↓"}{Math.abs(pct).toFixed(1)}%</span>}
+                    </div>
+                    <p style={{ fontSize: 12, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>
+                      {i === 0 && "Early letters to family and Maria Lewis use 'My dear Friend' — moderately formal for a young woman in her evangelical circle."}
+                      {i === 1 && "Coventry friendships with the Brays and Hennells bring the most intimate period: 'My dear Sara,' 'My dear Cara' dominate as personal bonds deepen."}
+                      {i === 2 && "Professional fame brings formal greetings — 'My dear Sir' to Blackwood, 'Dear Mr. Harrison' to admirers — even as 'Dearest' emerges for close friends."}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+    
+            {/* Category Cards */}
+            <div style={{ fontSize: 13, color: "#7a6a56", marginTop: 22, marginBottom: 10, fontWeight: 600 }}>Greeting Categories — click to expand</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
+              {CATS.map(c => {
+                const isExp = expandedCat === c;
+                const segs = CAT_SEGS[c] || [];
+                const cps = CAT_CPS[c] || [];
+                const exs = EXAMPLES[c] || [];
+                return (
+                  <div key={c} onClick={() => setExpandedCat(isExp ? null : c)} style={{ background: isExp ? "#e2d9cc" : "#ebe3d6", borderRadius: 10, border: `1.5px solid ${isExp ? COLORS[c] : "#d6cab8"}`, padding: 14, cursor: "pointer", transition: "all 0.2s" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS[c] }} />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "#3a2a1a" }}>{c}</span>
+                      </div>
+                      <span style={{ fontSize: 10, color: "#b45309", fontWeight: 700 }}>{cps.length > 0 ? `CP: ${cps.join(", ")}` : "—"}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+                      <span style={{ padding: "2px 8px", borderRadius: 10, fontSize: 10, background: "#f5f0e6", border: "1px solid #d6cab8", color: "#7a6a56" }}>Formality: {FORMALITY_SCORE[c]}/9</span>
+                    </div>
+                    {/* Examples */}
+                    <div style={{ padding: "8px 8px", background: "#f5f0e6", borderRadius: 6, border: "1px solid #d6cab8", marginBottom: 8 }}>
+                      <div style={{ fontSize: 9, letterSpacing: 1.5, color: COLORS[c], textTransform: "uppercase", fontWeight: 700, marginBottom: 5 }}>Example Openings</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                        {exs.slice(0, isExp ? 5 : 3).map((ex, i) => (
+                          <span key={i} style={{ padding: "3px 8px", borderRadius: 8, fontSize: 11, fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: "italic", background: `${COLORS[c]}10`, border: `1px solid ${COLORS[c]}25`, color: "#5a4a38" }}>"{ex.raw}" <span style={{ color: "#9a8a76", fontStyle: "normal", fontSize: 10 }}>×{ex.n}</span></span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Segments */}
+                    {isExp && segs.length > 0 && segs.map((s, i) => {
+                      const pct = i > 0 ? (s.m - segs[i - 1].m) : null;
+                      return (
+                        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", background: i % 2 === 0 ? "#f5f0e6" : "#e2d9cc", borderRadius: 5, marginBottom: 2 }}>
+                          <span style={{ fontSize: 11, color: "#6a5a48" }}>{s.s}–{s.e}</span>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: COLORS[c] }}>{s.m.toFixed(1)}%</span>
+                            {pct !== null && <span style={{ fontSize: 10, color: pct > 0 ? "#10b981" : "#f97316" }}>{pct > 0 ? "↑" : "↓"}{Math.abs(pct).toFixed(1)}</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {!isExp && segs.length > 0 && <div style={{ fontSize: 10, color: "#9a8a76", textAlign: "center" }}>click for segment details ▾</div>}
+                  </div>
+                );
+              })}
+            </div>
+    
+            {/* Recipients */}
+            <div style={{ marginTop: 24, background: "#ebe3d6", borderRadius: 14, border: "1px solid #d6cab8", padding: 22 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px", color: "#3a2a1a", fontFamily: "'Crimson Pro', Georgia, serif" }}>Greetings by Recipient</h2>
+              <p style={{ fontSize: 12, color: "#7a6a56", margin: "0 0 14px" }}>How Eliot calibrated her opening for each relationship. Click to see their most common greetings.</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
+                {Object.entries(RECIPIENTS).map(([name, data]) => (
+                  <RecipientCard key={name} name={name} data={data} isSelected={selectedRecip === name} onClick={() => setSelectedRecip(selectedRecip === name ? null : name)} />
+                ))}
+              </div>
+            </div>
+    
+            {/* Key Findings */}
+            <div style={{ marginTop: 22, background: "#ebe3d6", borderRadius: 14, border: "1px solid #d6cab8", padding: 22 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#3a2a1a", margin: "0 0 14px", fontFamily: "'Crimson Pro', Georgia, serif" }}>Key Findings</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
+                <div style={{ padding: 14, background: "#f5f0e6", borderRadius: 8, borderLeft: "3px solid #10b981" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#10b981", marginBottom: 5 }}>"My dear [name]" Collapses (1851)</div>
+                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>The intimate first-name greeting drops from 47.9% to 11.5% as Eliot leaves her Coventry circle. The greeting that defined her closest friendships becomes a minority form almost overnight.</p>
+                </div>
+                <div style={{ padding: 14, background: "#f5f0e6", borderRadius: 8, borderLeft: "3px solid #2563eb" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", marginBottom: 5 }}>"My dear Sir" Surges (1857)</div>
+                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>As George Eliot becomes a famous author, "My dear Mr/Mrs" rises from 6.8% to 32.4%. Her correspondence with John Blackwood alone accounts for 141 "My dear Sir" greetings.</p>
+                </div>
+                <div style={{ padding: 14, background: "#f5f0e6", borderRadius: 8, borderLeft: "3px solid #f43f5e" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#f43f5e", marginBottom: 5 }}>"Dearest" Blooms Late (1875)</div>
+                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>Nearly absent for decades, "Dearest [name]" surges to 29.2% after 1875 — reflecting deep bonds with Barbara Bodichon, Elma Stuart, and stepson Charles ("Dearest Boy"), even as formal greetings coexist.</p>
+                </div>
+              </div>
+            </div>
+    
+            <div style={{ marginTop: 14, padding: 14, fontSize: 10, color: "#9a8a76", lineHeight: 1.6, borderTop: "1px solid #d6cab8" }}>
+              <strong style={{ color: "#7a6a56" }}>Methodology:</strong> 1,843 greetings extracted from 2,171 letters (84.9% coverage) via pattern matching on opening lines. Formality scored 2–8 from intimate ("Dearest") to formal ("Dear Sir"). Binary segmentation with BIC penalty. Drag brush to zoom.
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
