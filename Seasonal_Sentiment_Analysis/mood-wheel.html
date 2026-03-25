@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seasonal Mood Wheel – George Eliot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:     #faf6ee;
+      --parchment: #f5f0e6;
+      --ink:       #3a2a1a;
+      --ink-light: #7a6a56;
+      --gold:      #b8860b;
+      --rust:      #b45309;
+      --border:    #d6cab8;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Crimson Pro', 'Georgia', serif;
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    body { padding: 1.2rem 1.5rem; }
+
+    #tooltip {
+      position: fixed; background: var(--cream); color: var(--ink);
+      padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.82rem;
+      pointer-events: none; z-index: 9999; max-width: 260px; line-height: 1.55;
+      border: 1px solid var(--border); display: none;
+      box-shadow: 0 2px 10px rgba(44,35,24,0.12);
+      font-family: 'Crimson Pro', 'Georgia', serif;
+    }
+    #tooltip strong { color: var(--rust); }
+
+    .controls {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+      margin-bottom: 1.2rem; padding: 0.65rem 1rem;
+      background: var(--parchment); border: 1px solid var(--border); border-radius: 4px;
+      font-size: 0.88rem; color: var(--ink-light);
+    }
+    .controls label { font-weight: bold; }
+    .controls select {
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: 0.25rem 0.5rem; background: var(--cream); color: var(--ink);
+      font-family: inherit; font-size: 0.85rem;
+    }
+
+    #mood-svg { display: block; margin: 0 auto; }
+    svg text { font-family: 'Crimson Pro', 'Georgia', serif; }
+  </style>
+</head>
+<body>
+<div id="tooltip"></div>
+
+<div class="controls">
+  <label>Show:</label>
+  <select id="mood-mode">
+    <option value="sentiment">Sentiment Score</option>
+    <option value="volume">Letter Volume</option>
+    <option value="length">Avg Letter Length</option>
+  </select>
+</div>
+
+<svg id="mood-svg"></svg>
+
+<script>
+const tooltip = document.getElementById('tooltip');
+function showTip(html, event) { tooltip.innerHTML = html; tooltip.style.display = 'block'; moveTip(event); }
+function moveTip(event) {
+  let x = event.clientX + 15, y = event.clientY - 10;
+  if (x + 270 > window.innerWidth)  x = event.clientX - 275;
+  if (y + 130 > window.innerHeight) y = event.clientY - 130;
+  tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px';
+}
+function hideTip() { tooltip.style.display = 'none'; }
+
+const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const monthStats = [
+  { month: 1,  name:'January',   letters:201, pos:3102, neg:1404, avgWords:276 },
+  { month: 2,  name:'February',  letters:183, pos:2923, neg:1484, avgWords:291 },
+  { month: 3,  name:'March',     letters:221, pos:3384, neg:1662, avgWords:289 },
+  { month: 4,  name:'April',     letters:191, pos:3059, neg:1509, avgWords:304 },
+  { month: 5,  name:'May',       letters:237, pos:3714, neg:1719, avgWords:296 },
+  { month: 6,  name:'June',      letters:207, pos:3719, neg:1732, avgWords:334 },
+  { month: 7,  name:'July',      letters:184, pos:3370, neg:1512, avgWords:334 },
+  { month: 8,  name:'August',    letters:161, pos:3238, neg:1491, avgWords:360 },
+  { month: 9,  name:'September', letters:163, pos:3326, neg:1475, avgWords:372 },
+  { month:10,  name:'October',   letters:206, pos:3565, neg:1748, avgWords:317 },
+  { month:11,  name:'November',  letters:223, pos:3612, neg:1748, avgWords:309 },
+  { month:12,  name:'December',  letters:213, pos:3270, neg:1476, avgWords:277 },
+];
+
+function buildMoodWheel() {
+  const svgEl = document.getElementById('mood-svg');
+  const containerW = svgEl.parentElement.clientWidth - 4;
+  const S = Math.min(containerW, 540);
+  const totalH = S + 60;
+  svgEl.setAttribute('width', S);
+  svgEl.setAttribute('height', totalH);
+  svgEl.innerHTML = '';
+
+  const mode = document.getElementById('mood-mode').value;
+  const cx = S / 2, cy = S / 2;
+  const innerR    = S * 0.15;
+  const outerRbase = S * 0.35;
+
+  const svg = d3.select(svgEl);
+  const g = svg.append('g').attr('transform', `translate(${cx},${cy})`);
+
+  const sliceAngle = (2 * Math.PI) / 12;
+
+  let values;
+  if (mode === 'sentiment') {
+    values = monthStats.map(d => { const tot = d.pos + d.neg; return tot > 0 ? (d.pos - d.neg) / tot : 0; });
+  } else if (mode === 'volume') {
+    values = monthStats.map(d => d.letters);
+  } else {
+    values = monthStats.map(d => d.avgWords);
+  }
+
+  const vmin = d3.min(values), vmax = d3.max(values);
+  const outerRscale = d3.scaleLinear().domain([vmin, vmax]).range([outerRbase * 0.52, outerRbase]);
+
+  const colorInterp = mode === 'sentiment'
+    ? d3.interpolateRgb('#c2410c','#2e7d52')
+    : mode === 'volume'
+    ? d3.interpolateRgb('#d6cab8','#0369a1')
+    : d3.interpolateRgb('#d6cab8','#7c3aed');
+
+  const sentScale = d3.scaleSequential().domain([vmin, vmax]).interpolator(colorInterp);
+
+  monthStats.forEach((d, i) => {
+    const startAngle = i * sliceAngle - Math.PI / 2;
+    const endAngle   = startAngle + sliceAngle;
+    const midAngle   = startAngle + sliceAngle / 2;
+    const r = outerRscale(values[i]);
+
+    const arc = d3.arc()
+      .innerRadius(innerR)
+      .outerRadius(r)
+      .startAngle(startAngle)
+      .endAngle(endAngle)
+      .padAngle(0.025)
+      .cornerRadius(3);
+
+    g.append('path')
+      .attr('d', arc())
+      .attr('fill', sentScale(values[i]))
+      .attr('stroke', '#f5f0e6')
+      .attr('stroke-width', 0.5)
+      .on('mouseover', function(event) {
+        const score = ((d.pos - d.neg) / (d.pos + d.neg) * 100).toFixed(1);
+        showTip(
+          `<strong>${d.name}</strong><br/>` +
+          `${d.letters} letters · avg ${d.avgWords} words<br/>` +
+          `Positive: ${d.pos.toLocaleString()} · Negative: ${d.neg.toLocaleString()}<br/>` +
+          `Sentiment: ${+score > 0 ? '+' : ''}${score}%`,
+          event
+        );
+        d3.select(this).attr('opacity', 0.72);
+      })
+      .on('mousemove', moveTip)
+      .on('mouseout', function() { hideTip(); d3.select(this).attr('opacity', 1); });
+
+    const labelR = outerRbase + 22;
+    g.append('text')
+      .attr('x', Math.cos(midAngle) * labelR)
+      .attr('y', Math.sin(midAngle) * labelR)
+      .attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('font-size', 11).attr('fill','#7a6a56')
+      .text(monthShort[i]);
+  });
+
+  g.append('text')
+    .attr('text-anchor','middle').attr('dominant-baseline','middle')
+    .attr('y', 0).attr('font-size', 11).attr('fill','#7a6a56').attr('font-style','italic')
+    .text('hover a month');
+
+  // Legend
+  const legW = S * 0.55;
+  const legX = cx - legW / 2;
+  const legY = S + 14;
+
+  const gradId = 'moodgrad_' + mode;
+  const defs = svg.append('defs');
+  const grad = defs.append('linearGradient').attr('id', gradId).attr('x1','0%').attr('x2','100%');
+  const stops = 8;
+  for (let s = 0; s <= stops; s++) {
+    grad.append('stop').attr('offset', `${(s/stops)*100}%`).attr('stop-color', colorInterp(s/stops));
+  }
+
+  svg.append('rect')
+    .attr('x', legX).attr('y', legY)
+    .attr('width', legW).attr('height', 10)
+    .attr('rx', 4).attr('fill', `url(#${gradId})`);
+
+  const [minLabel, maxLabel] = mode === 'sentiment'
+    ? ['← more subdued', 'more positive →']
+    : mode === 'volume'
+    ? ['← fewer letters', 'more letters →']
+    : ['← shorter letters', 'longer letters →'];
+
+  svg.append('text').attr('x', legX).attr('y', legY + 24)
+    .attr('font-size', 9.5).attr('fill','#7a6a56').text(minLabel);
+  svg.append('text').attr('x', legX + legW).attr('y', legY + 24)
+    .attr('text-anchor','end').attr('font-size', 9.5).attr('fill','#7a6a56').text(maxLabel);
+
+  const modeLabel = { sentiment:'Sentiment', volume:'Letter Volume', length:'Avg Words/Letter' };
+  svg.append('text').attr('x', cx).attr('y', legY - 5)
+    .attr('text-anchor','middle').attr('font-size', 11)
+    .attr('fill','#b45309').attr('font-weight','bold').text(modeLabel[mode]);
+}
+
+document.getElementById('mood-mode').addEventListener('change', buildMoodWheel);
+
+window.addEventListener('resize', () => {
+  clearTimeout(window._rt);
+  window._rt = setTimeout(buildMoodWheel, 160);
+});
+
+buildMoodWheel();
+</script>
+</body>
+</html>
