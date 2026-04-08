@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>George Eliot · Stylometric Analysis</title>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f2ede3;
+      color: #2c1810;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      padding: 22px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .header {
+      padding: 10px 0 14px;
+      margin-bottom: 18px;
+      border-bottom: 2px solid #c9a050;
+    }
+    .header h1 {
+      font-size: 1.55rem;
+      font-weight: bold;
+      color: #2c1810;
+      letter-spacing: 0.5px;
+    }
+    .header p {
+      font-size: 0.78rem;
+      color: #7a6a5a;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    /* ── Controls ───────────────────────────────────────────────── */
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .toggle-btn {
+      background: #faf7f2;
+      border: 1px solid #c8bba8;
+      color: #6a5a4a;
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-size: 0.73rem;
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: inherit;
+    }
+    .toggle-btn.active {
+      background: #4a3728;
+      color: #f5ede0;
+      border-color: #4a3728;
+    }
+    .toggle-btn:hover:not(.active) { border-color: #8a6a50; color: #4a3728; }
+
+    /* ── Grid ───────────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: #faf7f2;
+      border: 1px solid #e2d9c8;
+      border-radius: 6px;
+      padding: 16px 16px 10px;
+      box-shadow: 0 1px 3px rgba(44,24,16,0.06);
+    }
+    .card-title {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: #2c1810;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+    .card-subtitle {
+      font-size: 0.65rem;
+      color: #9a8a7a;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+
+    /* ── Metric pills ───────────────────────────────────────────── */
+    .metric-row {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .metric-pill {
+      font-size: 0.64rem;
+      background: #f0ebe1;
+      border: 1px solid #d8cfc0;
+      color: #7a6a5a;
+      padding: 3px 9px;
+      border-radius: 10px;
+      cursor: default;
+      font-style: italic;
+    }
+    .metric-pill:hover { border-color: #c9a050; color: #4a3728; }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      font-size: 0.65rem;
+      color: #a09080;
+      margin-top: 16px;
+      font-style: italic;
+    }
+    .footer a { color: #6e8fa3; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 660px) {
+      .grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>George Eliot &nbsp;·&nbsp; Stylometric Analysis</h1>
+  <p>Interactive exploration &nbsp;·&nbsp; Private Letters vs. Published Works &nbsp;·&nbsp; Pre-computed aggregate metrics only</p>
+</div>
+
+<div class="controls">
+  <button class="toggle-btn active" id="btnWorks"   onclick="toggleGroup('work')">Published Works</button>
+  <button class="toggle-btn active" id="btnLetters" onclick="toggleGroup('letter')">Letters by Decade</button>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-title">Stylometric Fingerprint</div>
+    <div class="card-subtitle">Normalized feature profiles (0–1 min–max scaled)</div>
+    <div id="radarChart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Vocabulary Complexity Over Time</div>
+    <div class="card-subtitle">Letters by decade · Published works as dotted reference lines</div>
+    <div id="vocabChart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Sentence Length Distribution</div>
+    <div class="card-subtitle">Pre-computed density · outliers trimmed at 100 words/sentence</div>
+    <div id="sentChart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Word Length Distribution</div>
+    <div class="card-subtitle">Character count per token · density estimate</div>
+    <div id="wordChart"></div>
+    <div class="metric-row">
+      <span class="metric-pill" title="Letters use shorter, more conversational words">Letters: slightly shorter</span>
+      <span class="metric-pill" title="Published prose favours polysyllabic vocabulary">Works: richer vocabulary</span>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Aggregate statistics only — no letter text reproduced &nbsp;·&nbsp;
+  Analysis of George Eliot's correspondence &amp; published prose &nbsp;·&nbsp;
+  <a href="https://github.com/" target="_blank">View on GitHub</a>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  DATA  ·  Pre-computed aggregate statistics · No raw text
+// ══════════════════════════════════════════════════════════════════
+
+const FEATURES = [
+  'Word\nLength', 'Sentence\nLength', 'Vocab\nRichness',
+  'Hapax\nRatio', 'Function\nWords', 'Punct.\nDensity'
+];
+
+const PROFILES = [
+  // ── Published Works ─────────────────────────────────────────
+  { label: 'Adam Bede',         type: 'work',   r: [0.52, 0.71, 0.62, 0.54, 0.31, 0.35] },
+  { label: 'Mill on the Floss', type: 'work',   r: [0.55, 0.75, 0.65, 0.57, 0.29, 0.38] },
+  { label: 'Silas Marner',      type: 'work',   r: [0.48, 0.65, 0.58, 0.50, 0.35, 0.32] },
+  { label: 'Romola',            type: 'work',   r: [0.62, 0.82, 0.72, 0.64, 0.26, 0.45] },
+  { label: 'Felix Holt',        type: 'work',   r: [0.58, 0.79, 0.69, 0.61, 0.28, 0.42] },
+  { label: 'Middlemarch',       type: 'work',   r: [0.57, 0.85, 0.74, 0.66, 0.25, 0.48] },
+  { label: 'Daniel Deronda',    type: 'work',   r: [0.60, 0.88, 0.78, 0.70, 0.23, 0.52] },
+  // ── Letters by Decade (GE-sent, combined per decade) ────────
+  { label: 'Letters 1850s',     type: 'letter', r: [0.38, 0.42, 0.45, 0.40, 0.62, 0.58] },
+  { label: 'Letters 1860s',     type: 'letter', r: [0.40, 0.45, 0.48, 0.44, 0.59, 0.62] },
+  { label: 'Letters 1870s',     type: 'letter', r: [0.42, 0.48, 0.51, 0.47, 0.56, 0.65] },
+  { label: 'Letters 1880s',     type: 'letter', r: [0.41, 0.46, 0.52, 0.49, 0.54, 0.68] },
+];
+
+const VOCAB = {
+  decades: [1850, 1860, 1870, 1880],
+  ttr:     [0.262, 0.264, 0.267, 0.272],
+  hapax:   [0.452, 0.473, 0.512, 0.591],
+  workRefs: [
+    { label: 'Adam Bede',    ttr: 0.281 },
+    { label: 'Silas Marner', ttr: 0.276 },
+    { label: 'Felix Holt',   ttr: 0.289 },
+    { label: 'Middlemarch',  ttr: 0.292 },
+    { label: 'D. Deronda',   ttr: 0.298 },
+  ]
+};
+
+const SENT = {
+  bins:    [2,     5,     8,     11,    14,    17,    20,    23,    26,    29,    32,    38,    48,    65,    85],
+  works:   [0.012, 0.048, 0.105, 0.152, 0.172, 0.168, 0.138, 0.099, 0.071, 0.051, 0.036, 0.026, 0.013, 0.006, 0.002],
+  letters: [0.028, 0.088, 0.158, 0.196, 0.186, 0.150, 0.110, 0.078, 0.053, 0.036, 0.024, 0.016, 0.008, 0.003, 0.001],
+};
+
+const WORD = {
+  lengths: [1,     2,     3,     4,     5,     6,     7,     8,     9,     10,    11,    12,    13,    14   ],
+  works:   [0.022, 0.162, 0.195, 0.170, 0.130, 0.100, 0.075, 0.055, 0.034, 0.019, 0.009, 0.004, 0.002, 0.001],
+  letters: [0.036, 0.195, 0.210, 0.178, 0.128, 0.092, 0.067, 0.044, 0.026, 0.013, 0.006, 0.003, 0.001, 0.001],
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  PALETTE  ·  Matches the parchment / rose-blue scheme
+// ══════════════════════════════════════════════════════════════════
+// Published Works: muted steel-blue family
+const WORK_COLORS = [
+  '#6e8fa3', '#5c7d91', '#4a6b7f', '#38596d',
+  '#7a9db5', '#8fafc2', '#3a6880'
+];
+// Letters: terracotta / dusty-rose family
+const LETTER_COLORS = ['#c4776a', '#b06358', '#d68878', '#9c5248'];
+
+const BG         = '#faf7f2';   // card / plot background
+const PAGE_BG    = '#f2ede3';   // body (passed to paper_bgcolor)
+const GRID_COLOR = '#e2d9c8';
+const FONT_COLOR = '#7a6a5a';
+const TEXT_COLOR = '#2c1810';
+
+function hexToRgba(hex, a) {
+  const n = parseInt(hex.replace('#',''), 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+// ── Toggle state ─────────────────────────────────────────────────
+let showWorks   = true;
+let showLetters = true;
+
+function toggleGroup(group) {
+  if (group === 'work')   { showWorks   = !showWorks;   document.getElementById('btnWorks').classList.toggle('active'); }
+  if (group === 'letter') { showLetters = !showLetters; document.getElementById('btnLetters').classList.toggle('active'); }
+  buildRadar();
+}
+
+// Shared axis / layout defaults
+const AXIS = (title) => ({
+  title: { text: title, font: { color: FONT_COLOR, size: 10 } },
+  color: FONT_COLOR,
+  gridcolor: GRID_COLOR,
+  zerolinecolor: GRID_COLOR,
+  linecolor: GRID_COLOR,
+});
+const LEGEND_STYLE = (x, y) => ({
+  x, y,
+  font: { size: 9, color: TEXT_COLOR },
+  bgcolor: 'rgba(250,247,242,0.85)',
+  bordercolor: GRID_COLOR,
+  borderwidth: 1,
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  CHART 1 · RADAR
+// ══════════════════════════════════════════════════════════════════
+function buildRadar() {
+  const traces = [];
+  let wi = 0, li = 0;
+
+  PROFILES.forEach(p => {
+    if (p.type === 'work'   && !showWorks)   return;
+    if (p.type === 'letter' && !showLetters) return;
+
+    const color = p.type === 'work'
+      ? WORK_COLORS[wi++ % WORK_COLORS.length]
+      : LETTER_COLORS[li++ % LETTER_COLORS.length];
+
+    traces.push({
+      type: 'scatterpolar',
+      r: [...p.r, p.r[0]],
+      theta: [...FEATURES, FEATURES[0]],
+      name: p.label,
+      mode: 'lines+markers',
+      line:   { color, width: p.type === 'work' ? 1.5 : 2.2, dash: p.type === 'work' ? 'dot' : 'solid' },
+      marker: { size: p.type === 'work' ? 4 : 6, color },
+      fill: 'toself',
+      fillcolor: hexToRgba(color, 0.07),
+      hovertemplate: `<b>${p.label}</b><br>%{theta}: %{r:.2f}<extra></extra>`,
+    });
+  });
+
+  Plotly.react('radarChart', traces, {
+    polar: {
+      bgcolor: BG,
+      radialaxis: {
+        range: [0, 1],
+        tickvals: [0.25, 0.5, 0.75, 1],
+        tickfont: { color: FONT_COLOR, size: 8 },
+        gridcolor: GRID_COLOR,
+        linecolor: GRID_COLOR,
+      },
+      angularaxis: {
+        tickfont: { color: TEXT_COLOR, size: 9 },
+        gridcolor: GRID_COLOR,
+        linecolor: GRID_COLOR,
+      },
+    },
+    paper_bgcolor: BG,
+    showlegend: true,
+    legend: { orientation: 'v', x: 1.02, y: 1, font: { size: 8, color: TEXT_COLOR }, bgcolor: 'rgba(250,247,242,0.9)', bordercolor: GRID_COLOR, borderwidth: 1, tracegroupgap: 2 },
+    margin: { t: 5, b: 5, l: 30, r: 118 },
+    height: 300,
+  }, { responsive: true, displayModeBar: false });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CHART 2 · VOCABULARY OVER TIME
+// ══════════════════════════════════════════════════════════════════
+function buildVocab() {
+  const traces = [
+    {
+      x: VOCAB.decades, y: VOCAB.ttr,
+      mode: 'lines+markers', name: 'Type-Token Ratio',
+      marker: { symbol: 'square', size: 10, color: '#6e8fa3' },
+      line: { color: '#6e8fa3', width: 2.5 },
+      hovertemplate: '<b>%{x}s</b>  TTR: %{y:.3f}<extra></extra>',
+    },
+    {
+      x: VOCAB.decades, y: VOCAB.hapax,
+      mode: 'lines+markers', name: 'Hapax Ratio',
+      marker: { symbol: 'diamond', size: 10, color: '#c4776a' },
+      line: { color: '#c4776a', width: 2.5 },
+      hovertemplate: '<b>%{x}s</b>  Hapax: %{y:.3f}<extra></extra>',
+    },
+    ...VOCAB.workRefs.map(w => ({
+      x: [1847, 1883], y: [w.ttr, w.ttr],
+      mode: 'lines+text', name: w.label,
+      showlegend: false,
+      text: ['', w.label],
+      textposition: 'middle right',
+      textfont: { size: 8, color: 'rgba(110,143,163,0.6)' },
+      line: { color: 'rgba(110,143,163,0.28)', width: 1, dash: 'dot' },
+      hovertemplate: `<b>${w.label}</b>  TTR ref: ${w.ttr.toFixed(3)}<extra></extra>`,
+    })),
+  ];
+
+  Plotly.newPlot('vocabChart', traces, {
+    xaxis: { ...AXIS('Decade'), tickvals: VOCAB.decades, ticktext: VOCAB.decades.map(d => `${d}s`) },
+    yaxis: { ...AXIS('Ratio'), range: [0.19, 0.65] },
+    paper_bgcolor: BG, plot_bgcolor: BG,
+    font: { color: TEXT_COLOR },
+    legend: LEGEND_STYLE(0.03, 0.97),
+    margin: { t: 8, b: 50, l: 55, r: 58 },
+    height: 300,
+  }, { responsive: true, displayModeBar: false });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CHART 3 · SENTENCE LENGTH
+// ══════════════════════════════════════════════════════════════════
+function buildSent() {
+  Plotly.newPlot('sentChart', [
+    {
+      x: SENT.bins, y: SENT.works,
+      type: 'bar', name: 'Published Works',
+      marker: { color: 'rgba(110,143,163,0.70)', line: { color: '#6e8fa3', width: 1 } },
+      hovertemplate: '~%{x} words/sent<br>Density: %{y:.3f}<extra>Published Works</extra>',
+    },
+    {
+      x: SENT.bins, y: SENT.letters,
+      type: 'bar', name: 'Letters',
+      marker: { color: 'rgba(196,119,106,0.65)', line: { color: '#c4776a', width: 1 } },
+      hovertemplate: '~%{x} words/sent<br>Density: %{y:.3f}<extra>Letters</extra>',
+    },
+  ], {
+    barmode: 'overlay',
+    xaxis: AXIS('Words per Sentence'),
+    yaxis: AXIS('Density'),
+    paper_bgcolor: BG, plot_bgcolor: BG,
+    font: { color: TEXT_COLOR },
+    legend: LEGEND_STYLE(0.60, 0.97),
+    margin: { t: 8, b: 50, l: 55, r: 20 },
+    height: 300,
+  }, { responsive: true, displayModeBar: false });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CHART 4 · WORD LENGTH
+// ══════════════════════════════════════════════════════════════════
+function buildWord() {
+  Plotly.newPlot('wordChart', [
+    {
+      x: WORD.lengths, y: WORD.works,
+      type: 'bar', name: 'Published Works',
+      marker: { color: 'rgba(110,143,163,0.70)', line: { color: '#6e8fa3', width: 1 } },
+      hovertemplate: '%{x}-char words<br>Density: %{y:.3f}<extra>Published Works</extra>',
+    },
+    {
+      x: WORD.lengths, y: WORD.letters,
+      type: 'bar', name: 'Letters',
+      marker: { color: 'rgba(196,119,106,0.65)', line: { color: '#c4776a', width: 1 } },
+      hovertemplate: '%{x}-char words<br>Density: %{y:.3f}<extra>Letters</extra>',
+    },
+  ], {
+    barmode: 'overlay',
+    xaxis: { ...AXIS('Word Length (characters)'), tickvals: WORD.lengths },
+    yaxis: AXIS('Density'),
+    paper_bgcolor: BG, plot_bgcolor: BG,
+    font: { color: TEXT_COLOR },
+    legend: LEGEND_STYLE(0.60, 0.97),
+    margin: { t: 8, b: 50, l: 55, r: 20 },
+    height: 300,
+  }, { responsive: true, displayModeBar: false });
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════════
+buildRadar();
+buildVocab();
+buildSent();
+buildWord();
+</script>
+</body>
+</html>
