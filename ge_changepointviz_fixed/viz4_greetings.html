@@ -31,6 +31,7 @@
     const CATS = ["My dear Mr/Mrs","Dear [first name]","My dear [first name]","Dearest [name]","Dear Friend(s)","Dear Mr/Mrs","My dear Friend(s)","Dear Sir"];
     const COLORS = {"My dear Mr/Mrs":"#2563eb","Dear [first name]":"#f97316","My dear [first name]":"#10b981","Dearest [name]":"#f43f5e","Dear Friend(s)":"#a855f7","Dear Mr/Mrs":"#0891b2","My dear Friend(s)":"#eab308","Dear Sir":"#64748b"};
     const FORMALITY_SCORE = {"My dear Mr/Mrs":6,"Dear [first name]":4,"My dear [first name]":3,"Dearest [name]":2,"Dear Friend(s)":5,"Dear Mr/Mrs":7,"My dear Friend(s)":4,"Dear Sir":8};
+    const CAT_DESCS = {"My dear Mr/Mrs":"The standard professional salutation for titled acquaintances — used heavily with publisher John Blackwood and business contacts.","Dear [first name]":"A warm but slightly reserved opening — familiar enough to use a first name, yet without the possessive 'my' that signals deeper intimacy.","My dear [first name]":"Signals genuine personal affection — the possessive 'my' marks the recipient as someone claimed in friendship, common with the Coventry circle.","Dearest [name]":"The most intimate salutation available — reserved for Eliot's closest emotional bonds and rarely used before her later years.","Dear Friend(s)":"A warm but nameless address — used when intimacy existed but naming conventions were uncertain, especially with the Brays.","Dear Mr/Mrs":"Polite and professional without the warmth of 'my dear' — used for newer acquaintances and more formal relationships.","My dear Friend(s)":"Combines the personal 'my dear' with the generic 'friend' — an intimate form used heavily in Eliot's earliest letters.","Dear Sir":"The most formal salutation — reserved for strangers, editors, and strictly professional contacts."};
     
     const CAT_CPS = {"My dear Mr/Mrs":[1840,1857],"Dear [first name]":[1846,1866],"My dear [first name]":[1851],"Dearest [name]":[1875],"Dear Friend(s)":[1849,1857,1863],"Dear Mr/Mrs":[1862,1873],"My dear Friend(s)":[1840],"Dear Sir":[1868]};
     const CAT_SEGS = {"My dear Mr/Mrs":[{"s":1836,"e":1839,"m":44.4},{"s":1840,"e":1856,"m":6.8},{"s":1857,"e":1880,"m":32.4}],"Dear [first name]":[{"s":1836,"e":1845,"m":1.1},{"s":1846,"e":1865,"m":33.6},{"s":1866,"e":1880,"m":7.6}],"My dear [first name]":[{"s":1836,"e":1850,"m":47.9},{"s":1851,"e":1880,"m":11.5}],"Dearest [name]":[{"s":1836,"e":1874,"m":6.2},{"s":1875,"e":1880,"m":29.2}],"Dear Friend(s)":[{"s":1836,"e":1848,"m":1.4},{"s":1849,"e":1856,"m":38.3},{"s":1857,"e":1862,"m":13.0},{"s":1863,"e":1880,"m":3.3}],"Dear Mr/Mrs":[{"s":1836,"e":1861,"m":1.3},{"s":1862,"e":1872,"m":9.5},{"s":1873,"e":1880,"m":18.7}],"My dear Friend(s)":[{"s":1836,"e":1839,"m":36.1},{"s":1840,"e":1880,"m":4.3}],"Dear Sir":[]};
@@ -63,7 +64,7 @@
       return (
         <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 10, padding: "12px 16px", fontFamily: "system-ui, sans-serif", maxWidth: 270 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#3a2a1a", marginBottom: 3 }}>{label}</div>
-          <div style={{ fontSize: 11, color: "#7a6a56", marginBottom: 4 }}>{d?.total} greetings · Formality: {d?.formality?.toFixed(1)}/9</div>
+          <div style={{ fontSize: 11, color: "#7a6a56", marginBottom: 4 }}>{d?.total} salutations · Formality: {d?.formality?.toFixed(1)}/9</div>
           {CATS.filter(c => (d?.[c] || 0) > 0).map(c => (
             <div key={c} style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -85,7 +86,7 @@
       return (
         <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 10, padding: "10px 14px", fontFamily: "system-ui" }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#3a2a1a" }}>{label}</div>
-          <div style={{ fontSize: 12, color: "#7a6a56", marginBottom: 4 }}>{d?.total} greetings</div>
+          <div style={{ fontSize: 12, color: "#7a6a56", marginBottom: 4 }}>{d?.total} salutations</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#b45309" }}>{f?.toFixed(2)} / 9 — {desc}</div>
         </div>
       );
@@ -141,7 +142,7 @@
                 Opening Words: <span style={{ fontWeight: 700, background: "linear-gradient(90deg, #2563eb, #10b981, #f43f5e)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Salutation Patterns</span>
               </h1>
               <p style={{ fontSize: 13, color: "#7a6a56", marginTop: 8, maxWidth: 700, lineHeight: 1.65 }}>
-                How George Eliot opened 1,843 letters across 44 years — from the intimacy of "Dearest Barbara" to the formality of "My dear Sir." Greetings calibrate tone before a word of content is read.
+                How George Eliot opened 1,843 letters across 44 years — from the intimacy of "Dearest Barbara" to the formality of "My dear Sir." Salutations calibrate tone before a word of content is read.
               </p>
             </div>
     
@@ -214,7 +215,7 @@
                     <p style={{ fontSize: 12, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>
                       {i === 0 && "Early letters to family and Maria Lewis use 'My dear Friend' — moderately formal for a young woman in her evangelical circle."}
                       {i === 1 && "Coventry friendships with the Brays and Hennells bring the most intimate period: 'My dear Sara,' 'My dear Cara' dominate as personal bonds deepen."}
-                      {i === 2 && "Professional fame brings formal greetings — 'My dear Sir' to Blackwood, 'Dear Mr. Harrison' to admirers — even as 'Dearest' emerges for close friends."}
+                      {i === 2 && "Professional fame brings formal salutations — 'My dear Sir' to Blackwood, 'Dear Mr. Harrison' to admirers — even as 'Dearest' emerges for close friends."}
                     </p>
                   </div>
                 );
@@ -222,7 +223,7 @@
             </div>
     
             {/* Category Cards */}
-            <div style={{ fontSize: 13, color: "#7a6a56", marginTop: 22, marginBottom: 10, fontWeight: 600 }}>Greeting Categories — click to expand</div>
+            <div style={{ fontSize: 13, color: "#7a6a56", marginTop: 22, marginBottom: 10, fontWeight: 600 }}>Salutation Categories — click to expand</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
               {CATS.map(c => {
                 const isExp = expandedCat === c;
@@ -241,6 +242,7 @@
                     <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
                       <span style={{ padding: "2px 8px", borderRadius: 10, fontSize: 10, background: "#f5f0e6", border: "1px solid #d6cab8", color: "#7a6a56" }}>Formality: {FORMALITY_SCORE[c]}/9</span>
                     </div>
+                    <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.5, margin: "0 0 8px" }}>{CAT_DESCS[c]}</p>
                     {/* Examples */}
                     <div style={{ padding: "8px 8px", background: "#f5f0e6", borderRadius: 6, border: "1px solid #d6cab8", marginBottom: 8 }}>
                       <div style={{ fontSize: 9, letterSpacing: 1.5, color: COLORS[c], textTransform: "uppercase", fontWeight: 700, marginBottom: 5 }}>Example Openings</div>
@@ -271,8 +273,8 @@
     
             {/* Recipients */}
             <div style={{ marginTop: 24, background: "#ebe3d6", borderRadius: 14, border: "1px solid #d6cab8", padding: 22 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px", color: "#3a2a1a", fontFamily: "'Crimson Pro', Georgia, serif" }}>Greetings by Recipient</h2>
-              <p style={{ fontSize: 12, color: "#7a6a56", margin: "0 0 14px" }}>How Eliot calibrated her opening for each relationship. Click to see their most common greetings.</p>
+              <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px", color: "#3a2a1a", fontFamily: "'Crimson Pro', Georgia, serif" }}>Salutations by Recipient</h2>
+              <p style={{ fontSize: 12, color: "#7a6a56", margin: "0 0 14px" }}>How Eliot calibrated her opening for each relationship. Click to see their most common salutations.</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
                 {Object.entries(RECIPIENTS).map(([name, data]) => (
                   <RecipientCard key={name} name={name} data={data} isSelected={selectedRecip === name} onClick={() => setSelectedRecip(selectedRecip === name ? null : name)} />
@@ -286,21 +288,21 @@
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
                 <div style={{ padding: 14, background: "#f5f0e6", borderRadius: 8, borderLeft: "3px solid #10b981" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#10b981", marginBottom: 5 }}>"My dear [name]" Collapses (1851)</div>
-                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>The intimate first-name greeting drops from 47.9% to 11.5% as Eliot leaves her Coventry circle. The greeting that defined her closest friendships becomes a minority form almost overnight.</p>
+                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>The intimate first-name salutation drops from 47.9% to 11.5% as Eliot leaves her Coventry circle. The salutation that defined her closest friendships becomes a minority form almost overnight.</p>
                 </div>
                 <div style={{ padding: 14, background: "#f5f0e6", borderRadius: 8, borderLeft: "3px solid #2563eb" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", marginBottom: 5 }}>"My dear Sir" Surges (1857)</div>
-                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>As George Eliot becomes a famous author, "My dear Mr/Mrs" rises from 6.8% to 32.4%. Her correspondence with John Blackwood alone accounts for 141 "My dear Sir" greetings.</p>
+                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>As George Eliot becomes a famous author, "My dear Mr/Mrs" rises from 6.8% to 32.4%. Her correspondence with John Blackwood alone accounts for 141 "My dear Sir" salutations.</p>
                 </div>
                 <div style={{ padding: 14, background: "#f5f0e6", borderRadius: 8, borderLeft: "3px solid #f43f5e" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#f43f5e", marginBottom: 5 }}>"Dearest" Blooms Late (1875)</div>
-                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>Nearly absent for decades, "Dearest [name]" surges to 29.2% after 1875 — reflecting deep bonds with Barbara Bodichon, Elma Stuart, and stepson Charles ("Dearest Boy"), even as formal greetings coexist.</p>
+                  <p style={{ fontSize: 11, color: "#6a5a48", lineHeight: 1.6, margin: 0 }}>Nearly absent for decades, "Dearest [name]" surges to 29.2% after 1875 — reflecting deep bonds with Barbara Bodichon, Elma Stuart, and stepson Charles ("Dearest Boy"), even as formal salutations coexist.</p>
                 </div>
               </div>
             </div>
     
             <div style={{ marginTop: 14, padding: 14, fontSize: 10, color: "#9a8a76", lineHeight: 1.6, borderTop: "1px solid #d6cab8" }}>
-              <strong style={{ color: "#7a6a56" }}>Methodology:</strong> 1,843 greetings extracted from 2,171 letters (84.9% coverage) via pattern matching on opening lines. Formality scored 2–8 from intimate ("Dearest") to formal ("Dear Sir"). Binary segmentation with BIC penalty. Drag brush to zoom.
+              <strong style={{ color: "#7a6a56" }}>Methodology:</strong> 1,843 salutations extracted from 2,171 letters (84.9% coverage) via pattern matching on opening lines. Formality scored 2–8 from intimate ("Dearest") to formal ("Dear Sir"). Binary segmentation with BIC penalty. Drag brush to zoom.
             </div>
           </div>
         </div>
