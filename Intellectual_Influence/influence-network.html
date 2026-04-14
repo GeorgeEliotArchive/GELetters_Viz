@@ -77,11 +77,11 @@
 
 <script>
 const CAT_COLORS = {
-  Literature: '#c2410c',
+  Literature: '#de2702',
   Philosophy: '#0369a1',
   Music:      '#7c3aed',
   Classics:   '#2e7d52',
-  Science:    '#b45309'
+  Science:    '#ed9600'
 };
 
 const influences = [
@@ -327,10 +327,11 @@ function buildChips() {
     btn.dataset.cat = cat;
     btn.textContent = cat;
     const color = cat === 'All' ? '#5a4a35' : CAT_COLORS[cat];
+    btn.style.borderColor = color;
+    btn.style.color = color;
     if (cat === activeCat) {
       btn.style.background = color;
       btn.style.color = '#fff';
-      btn.style.borderColor = color;
     }
     btn.addEventListener('click', () => {
       activeCat = cat; selectedId = null;
@@ -536,19 +537,20 @@ function buildInfluence() {
   cats.forEach((c, ci) => {
     const sliceStart = (ci / cats.length) * 2 * Math.PI;
     const midAngle   = sliceStart + (1 / cats.length) * Math.PI;
-    const catLabelR  = Math.min(W_inf, H_inf) * 0.49;
+    const catLabelR  = Math.min(W_inf, H_inf) * 0.56;
     const rawLX = cx + catLabelR * Math.cos(midAngle);
     const rawLY = cy + catLabelR * Math.sin(midAngle);
-    const clampedLX = Math.max(40, Math.min(W_inf - 40, rawLX));
-    const clampedLY = Math.max(16, Math.min(H_inf - 16, rawLY));
+    const clampedLX = Math.max(55, Math.min(W_inf - 55, rawLX));
+    const clampedLY = Math.max(20, Math.min(H_inf - 20, rawLY));
     gCatLabels.append('text')
       .attr('id', `catlabel-${c}`)
       .attr('x', clampedLX)
       .attr('y', clampedLY)
       .attr('text-anchor','middle').attr('dominant-baseline','middle')
-      .attr('font-size', 12).attr('fill', CAT_COLORS[c])
-      .attr('font-style','italic')
-      .attr('opacity', activeCat === 'All' ? 0.75 : 0)
+      .attr('font-size', 17).attr('fill', CAT_COLORS[c])
+      .attr('font-style','italic').attr('font-weight','bold')
+      .attr('stroke','#faf6ee').attr('stroke-width', 6).attr('paint-order','stroke fill')
+      .attr('opacity', activeCat === 'All' ? 1 : 0)
       .text(c);
   });
 }
@@ -561,7 +563,7 @@ function animateInfluence() {
   const cats = ['Literature','Philosophy','Science','Music','Classics'];
 
   cats.forEach(c => {
-    svgInfluence.select(`#catlabel-${c}`).transition(t).attr('opacity', activeCat === 'All' ? 0.75 : 0);
+    svgInfluence.select(`#catlabel-${c}`).transition(t).attr('opacity', activeCat === 'All' ? 1 : 0);
   });
 
   influences.forEach(d => {
@@ -622,3 +624,4 @@ init();
 </script>
 </body>
 </html>
+
