@@ -38,7 +38,7 @@
     
     const FEATURES = {
       ttr: {
-        label: "Word Variety", color: "#9a5e3e", inverted: false,
+        label: "Word Variety", color: "#c2410c", inverted: false,
         desc: "The percentage of words in a letter that are unique. A value of 65% means nearly two-thirds of all words appear only once.",
         interp: "A higher ratio signals a richer, more diverse vocabulary — the writer reaches for new words rather than repeating familiar ones. Also known in stylometry as Type-Token Ratio.",
         highlights: [
@@ -48,7 +48,7 @@
         ],
       },
       hapax_ratio: {
-        label: "One-Time Words", color: "#7e6b94", inverted: false,
+        label: "One-Time Words", color: "#7c3aed", inverted: false,
         desc: "The share of words used only once in a letter. A higher ratio means more one-of-a-kind word choices and greater novelty.",
         interp: "When Eliot uses more unique, unrepeated words per letter, it signals deliberate and wide-ranging word selection. In stylometry this is known as the Hapax Legomena Ratio.",
         highlights: [
@@ -58,7 +58,7 @@
         ],
       },
       yules_k: {
-        label: "Vocabulary Concentration", color: "#5b7e91", inverted: true,
+        label: "Vocabulary Concentration", color: "#0369a1", inverted: true,
         desc: "Whether a writer leans on a small set of favorite words or spreads usage evenly. Lower scores indicate richer, more balanced vocabulary.",
         interp: "Unlike Word Variety, this metric adjusts for letter length, making it reliable for comparing short notes to long letters. It captures how top-heavy word usage is. Also known as Yule's K.",
         highlights: [
@@ -80,7 +80,7 @@
       const evts = LIFE_EVENTS.filter(e => e.year === label);
       return (
         <div style={{ background: "#faf6ee", border: "1px solid #d6cab8", borderRadius: 10, padding: "12px 16px", maxWidth: 280, fontFamily: "'Crimson Pro', Georgia, serif" }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#8c6534", marginBottom: 3 }}>{label}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#b45309", marginBottom: 3 }}>{label}</div>
           <div style={{ fontSize: 11, color: "#7a6a56", marginBottom: 8 }}>{d?.letter_count} letters · ~{Math.round(d?.avg_length||0)} words avg</div>
           {payload.map((p, i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 3 }}>
@@ -88,7 +88,7 @@
               <span style={{ fontWeight: 700, fontSize: 12, color: "#3a2a1a" }}>{p.dataKey === "yules_k" ? p.value?.toFixed(1) : (p.value*100)?.toFixed(1)+"%"}</span>
             </div>
           ))}
-          {evts.map((e,i) => <div key={i} style={{ marginTop: 6, padding: "4px 8px", background: "#d6cab8", borderRadius: 4, fontSize: 11, color: "#8c6534" }}>★ {e.label}</div>)}
+          {evts.map((e,i) => <div key={i} style={{ marginTop: 6, padding: "4px 8px", background: "#d6cab8", borderRadius: 4, fontSize: 11, color: "#b45309" }}>★ {e.label}</div>)}
         </div>
       );
     }
@@ -96,7 +96,7 @@
     function Card({ fk, cfg, active, onToggle }) {
       const segs = RAW_DATA.segments[fk] || [];
       const cps = RAW_DATA.changepoints[fk] || [];
-      const pillColors = { neutral: { bg: "#d6cab8", border: "#c4b8a4", text: "#5a4a38" }, good: { bg: "#4a6e4e18", border: "#4a6e4e40", text: "#4a6e4e" }, warn: { bg: "#9a5e3e18", border: "#9a5e3e40", text: "#9a5e3e" } };
+      const pillColors = { neutral: { bg: "#d6cab8", border: "#c4b8a4", text: "#5a4a38" }, good: { bg: "#15803d18", border: "#15803d40", text: "#15803d" }, warn: { bg: "#c2410c18", border: "#c2410c40", text: "#c2410c" } };
       return (
         <div onClick={onToggle} style={{ background: active ? "#c4b8a466" : "#f5f0e6", borderRadius: 14, border: `2px solid ${active ? cfg.color : "#ebe3d6"}`, padding: 20, cursor: "pointer", transition: "all 0.25s" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -104,7 +104,7 @@
               <div style={{ width: 12, height: 12, borderRadius: 3, background: active ? cfg.color : "#c4b8a4" }} />
               <span style={{ fontSize: 15, fontWeight: 700, color: active ? "#3a2a1a" : "#8a7a66" }}>{cfg.label}</span>
             </div>
-            <span style={{ fontSize: 10, color: "#8c6534", fontWeight: 700, fontFamily: "system-ui" }}>{cps.length ? `CP: ${cps.join(", ")}` : "—"}</span>
+            <span style={{ fontSize: 10, color: "#b45309", fontWeight: 700, fontFamily: "system-ui" }}>{cps.length ? `CP: ${cps.join(", ")}` : "—"}</span>
           </div>
           <p style={{ fontSize: 12, color: "#7a6a56", lineHeight: 1.5, margin: "0 0 12px", fontFamily: "system-ui" }}>{cfg.desc}</p>
     
@@ -127,7 +127,7 @@
                   <span style={{ fontSize: 12, color: "#5a4a38", fontFamily: "system-ui" }}>{s.start_year}–{s.end_year}</span>
                   <div style={{ display: "flex", gap: 8 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{fk==="yules_k" ? s.mean.toFixed(1) : (s.mean*100).toFixed(1)+"%"}</span>
-                    {pct !== null && <span style={{ fontSize: 11, fontWeight: 600, color: (cfg.inverted ? pct<0 : pct>0) ? "#4a6e4e" : "#9a5e3e", fontFamily: "system-ui" }}>{pct>0?"↑":"↓"} {Math.abs(pct).toFixed(1)}%</span>}
+                    {pct !== null && <span style={{ fontSize: 11, fontWeight: 600, color: (cfg.inverted ? pct<0 : pct>0) ? "#15803d" : "#c2410c", fontFamily: "system-ui" }}>{pct>0?"↑":"↓"} {Math.abs(pct).toFixed(1)}%</span>}
                   </div>
                 </div>
               );
@@ -145,6 +145,7 @@
       const [af, setAf] = useState({ ttr: true, hapax_ratio: true, yules_k: false });
       const [showSeg, setShowSeg] = useState(true);
       const [showCP, setShowCP] = useState(true);
+      const [showEventLabels, setShowEventLabels] = useState(false);
       const toggle = k => setAf(p => ({ ...p, [k]: !p[k] }));
       const ak = Object.entries(af).filter(([,v])=>v).map(([k])=>k);
       const allCPs = useMemo(() => { const c={}; ak.forEach(k=>(RAW_DATA.changepoints[k]||[]).forEach(yr=>{if(!c[yr])c[yr]=[];c[yr].push(k);})); return c; }, [ak.join(",")]);
@@ -153,32 +154,27 @@
       return (
         <div style={{ background: "#f5f0e6", minHeight: "100vh", color: "#4a3726", fontFamily: "'Crimson Pro', Georgia, serif", padding: "26px 20px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <div style={{ borderBottom: "1px solid #d6cab8", paddingBottom: 20, marginBottom: 24 }}>
-              <div style={{ fontSize: 10, letterSpacing: 4, color: "#7a6a56", textTransform: "uppercase", marginBottom: 8, fontFamily: "system-ui" }}>George Eliot Letters Archive · Change-Point Detection</div>
-              <h1 style={{ fontSize: 30, fontWeight: 300, lineHeight: 1.2, margin: 0, color: "#3a2a1a" }}>Vocabulary Richness <span style={{ color: "#8c6534" }}>Across Four Decades</span></h1>
-              <p style={{ fontSize: 14, color: "#7a6a56", marginTop: 8, maxWidth: 700, lineHeight: 1.6 }}>Tracking lexical diversity in 2,166 letters (1836–1880). Gold dashed lines mark detected change points. Click the cards below to toggle metrics on the chart.</p>
-            </div>
-    
+
             <div style={{ display: "flex", gap: 6, marginBottom: 18, background: "#ebe3d6", padding: 4, borderRadius: 8, width: "fit-content" }}>
-              {[["showCP","Change Points",showCP,setShowCP,"#8c6534"],["showSeg","Segments",showSeg,setShowSeg,"#8a7ea0"]].map(([id,l,v,fn,c])=>(
+              {[["showCP","Change Points",showCP,setShowCP,"#b45309"],["showSeg","Segments",showSeg,setShowSeg,"#a78bfa"],["showEL","Event Labels",showEventLabels,setShowEventLabels,"#0e7490"]].map(([id,l,v,fn,c])=>(
                 <button key={id} onClick={()=>fn(p=>!p)} style={{ padding:"6px 14px",borderRadius:6,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:"system-ui",background:v?c:"transparent",color:v?"#f5f0e6":"#8a7a66",transition:"all 0.2s"}}>{l}</button>
               ))}
             </div>
     
             <div style={{ background: "#ebe3d6", borderRadius: 14, border: "1px solid #d6cab8", padding: "18px 12px 8px 0" }}>
-              <ResponsiveContainer width="100%" height={380}>
-                <ComposedChart data={chartData} margin={{ top: 28, right: 22, left: 8, bottom: 8 }}>
+              <ResponsiveContainer width="100%" height={420}>
+                <ComposedChart data={chartData} margin={{ top: 48, right: 22, left: 8, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#d6cab8" />
                   <XAxis dataKey="year" tick={{ fill: "#8a7a66", fontSize: 11, fontFamily: "system-ui" }} tickLine={{ stroke: "#c4b8a4" }} axisLine={{ stroke: "#c4b8a4" }} />
                   {!rightOnly && <YAxis yAxisId="left" tick={{ fill: "#8a7a66", fontSize: 10 }} tickLine={false} axisLine={false} domain={[0.35,0.72]} tickFormatter={v=>(v*100).toFixed(0)+"%"} />}
-                  {af.yules_k && <YAxis yAxisId="right" orientation={rightOnly?"left":"right"} tick={{ fill: "#5b7e91", fontSize: 10 }} tickLine={false} axisLine={false} domain={[80,115]} />}
+                  {af.yules_k && <YAxis yAxisId="right" orientation={rightOnly?"left":"right"} tick={{ fill: "#0369a1", fontSize: 10 }} tickLine={false} axisLine={false} domain={[80,115]} />}
                   {showSeg && ak.map(k=>(RAW_DATA.segments[k]||[]).map((s,i)=><ReferenceArea key={`${k}${i}`} x1={s.start_year} x2={s.end_year} fill={FEATURES[k].color} fillOpacity={0.03+i%2*0.03} stroke="none" yAxisId={k==="yules_k"?"right":rightOnly?"right":"left"} />))}
-                  {showCP && Object.keys(allCPs).map(yr=><ReferenceLine key={yr} x={+yr} yAxisId={rightOnly?"right":"left"} stroke="#a07e3e" strokeDasharray="6 4" strokeWidth={2} label={{ value:yr,position:"top",fill:"#8c6534",fontSize:10,fontWeight:700,fontFamily:"system-ui"}} />)}
-                  {LIFE_EVENTS.map(e=><ReferenceLine key={e.year} x={e.year} yAxisId={rightOnly?"right":"left"} stroke="#6a9aa0" strokeDasharray="2 4" strokeWidth={1} strokeOpacity={0.3} />)}
+                  {showCP && Object.keys(allCPs).map(yr=><ReferenceLine key={yr} x={+yr} yAxisId={rightOnly?"right":"left"} stroke="#d97706" strokeDasharray="6 4" strokeWidth={2} label={{ value:yr,position:"top",fill:"#b45309",fontSize:10,fontWeight:700,fontFamily:"system-ui"}} />)}
+                  {LIFE_EVENTS.map(e=><ReferenceLine key={e.year} x={e.year} yAxisId={rightOnly?"right":"left"} stroke="#0e7490" strokeDasharray="2 3" strokeWidth={1} strokeOpacity={0.5} label={showEventLabels ? { value: e.label, position: "top", fill: "#0e7490", fontSize: 8, offset: 18, fontFamily: "system-ui", angle: -25 } : undefined} />)}
                   <Tooltip content={<Tip />} />
-                  {af.ttr && <Line yAxisId="left" type="monotone" dataKey="ttr" stroke="#9a5e3e" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#9a5e3e"}} />}
-                  {af.hapax_ratio && <Line yAxisId="left" type="monotone" dataKey="hapax_ratio" stroke="#7e6b94" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#7e6b94"}} />}
-                  {af.yules_k && <Line yAxisId="right" type="monotone" dataKey="yules_k" stroke="#5b7e91" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#5b7e91"}} />}
+                  {af.ttr && <Line yAxisId="left" type="monotone" dataKey="ttr" stroke="#c2410c" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#c2410c"}} />}
+                  {af.hapax_ratio && <Line yAxisId="left" type="monotone" dataKey="hapax_ratio" stroke="#7c3aed" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#7c3aed"}} />}
+                  {af.yules_k && <Line yAxisId="right" type="monotone" dataKey="yules_k" stroke="#0369a1" strokeWidth={2.5} dot={false} activeDot={{r:5,fill:"#0369a1"}} />}
                   <Brush dataKey="year" height={24} fill="#ebe3d6" stroke="#c4b8a4"><BarChart><Bar dataKey="letter_count" fill="#c4b8a4" /></BarChart></Brush>
                 </ComposedChart>
               </ResponsiveContainer>
@@ -194,7 +190,7 @@
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {LIFE_EVENTS.map((e,i)=>{
                     const isCp = Object.keys(allCPs).includes(String(e.year));
-                    return <div key={i} style={{ padding:"4px 10px",background:isCp?"#8c653418":"#f5f0e6",border:`1px solid ${isCp?"#8c6534":"#d6cab8"}`,borderRadius:5,fontSize:11,fontFamily:"system-ui"}}><span style={{color:"#8c6534",fontWeight:700,marginRight:5}}>{e.year}</span><span style={{color:"#7a6a56"}}>{e.label}</span>{isCp&&<span style={{color:"#8c6534",marginLeft:4,fontSize:9}}>⬥CP</span>}</div>;
+                    return <div key={i} style={{ padding:"4px 10px",background:isCp?"#d9770612":"#f5f0e6",border:`1px solid ${isCp?"#d97706":"#d6cab8"}`,borderRadius:5,fontSize:11,fontFamily:"system-ui"}}><span style={{color:"#5a4a38",fontWeight:700,marginRight:5}}>{e.year}</span><span style={{color:"#7a6a56"}}>{e.label}</span>{isCp&&<span style={{color:"#d97706",marginLeft:6,fontSize:9,fontWeight:700}}>⬥ Change Point</span>}</div>;
                   })}
                 </div>
               </div>
